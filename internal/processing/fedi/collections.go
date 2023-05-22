@@ -21,27 +21,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"net/url"
 
 	"github.com/superseriousbusiness/gotosocial/internal/ap"
 	"github.com/superseriousbusiness/gotosocial/internal/db"
 	"github.com/superseriousbusiness/gotosocial/internal/gtserror"
 )
-
-// InboxPost handles POST requests to a user's inbox for new activitypub messages.
-//
-// InboxPost returns true if the request was handled as an ActivityPub POST to an actor's inbox.
-// If false, the request was not an ActivityPub request and may still be handled by the caller in another way, such as serving a web page.
-//
-// If the error is nil, then the ResponseWriter's headers and response has already been written. If a non-nil error is returned, then no response has been written.
-//
-// If the Actor was constructed with the Federated Protocol enabled, side effects will occur.
-//
-// If the Federated Protocol is not enabled, writes the http.StatusMethodNotAllowed status code in the response. No side effects occur.
-func (p *Processor) InboxPost(ctx context.Context, w http.ResponseWriter, r *http.Request) (bool, error) {
-	return p.federator.FederatingActor().PostInbox(ctx, w, r)
-}
 
 // OutboxGet returns the activitypub representation of a local user's outbox.
 // This contains links to PUBLIC posts made by this user.

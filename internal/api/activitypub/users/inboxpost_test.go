@@ -21,6 +21,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -35,6 +37,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/ap"
 	"github.com/superseriousbusiness/gotosocial/internal/api/activitypub/users"
 	"github.com/superseriousbusiness/gotosocial/internal/db"
+	"github.com/superseriousbusiness/gotosocial/internal/gtserror"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/id"
 	"github.com/superseriousbusiness/gotosocial/testrig"
@@ -44,11 +47,79 @@ type InboxPostTestSuite struct {
 	UserStandardTestSuite
 }
 
-func (suite *InboxPostTestSuite) TestPostBlock() {
-	blockingAccount := suite.testAccounts["remote_account_1"]
-	blockedAccount := suite.testAccounts["local_account_1"]
-	blockURI := testrig.URLMustParse("http://fossbros-anonymous.io/users/foss_satan/blocks/01FG9C441MCTW3R2W117V2PQK3")
+func (suite *InboxPostTestSuite) inboxPost(
+	activity pub.Activity,
+	requestingAccount *gtsmodel.Account,
+	targetAccount *gtsmodel.Account,
+	expectedHTTPStatus int,
+	expectedBody string,
+) {
+	var (
+		recorder = httptest.NewRecorder()
+		ctx, _   = testrig.CreateGinTestContext(recorder, nil)
+	)
 
+	// Prepare the requst body bytes.
+	bodyI, err := ap.Serialize(activity)
+	if err != nil {
+		suite.FailNow(err.Error())
+	}
+
+	b, err := json.Marshal(bodyI)
+	if err != nil {
+		suite.FailNow(err.Error())
+	}
+
+	// Prepare signature headers for this Activity.
+	signature, digestHeader, dateHeader := testrig.GetSignatureForActivity(
+		activity,
+		requestingAccount.PublicKeyURI,
+		requestingAccount.PrivateKey,
+		testrig.URLMustParse(targetAccount.InboxURI),
+	)
+
+	// Put the request together.
+	ctx.AddParam(users.UsernameKey, targetAccount.Username)
+	ctx.Request = httptest.NewRequest(http.MethodPost, targetAccount.InboxURI, bytes.NewReader(b))
+	ctx.Request.Header.Set("Signature", signature)
+	ctx.Request.Header.Set("Date", dateHeader)
+	ctx.Request.Header.Set("Digest", digestHeader)
+	ctx.Request.Header.Set("Content-Type", "application/activity+json")
+
+	// Pass the context through signature check
+	// middleware first to populate it appropriately.
+	suite.signatureCheck(ctx)
+
+	// Trigger the function being tested.
+	suite.userModule.InboxPOSTHandler(ctx)
+
+	// Read the result.
+	result := recorder.Result()
+	defer result.Body.Close()
+
+	b, err = io.ReadAll(result.Body)
+	if err != nil {
+		suite.FailNow(err.Error())
+	}
+
+	errs := gtserror.MultiError{}
+
+	// Check expected code + body.
+	if resultCode := recorder.Code; expectedHTTPStatus != resultCode {
+		errs = append(errs, fmt.Sprintf("expected %d got %d", expectedHTTPStatus, resultCode))
+	}
+
+	// If we got an expected body, return early.
+	if expectedBody != "" && string(b) != expectedBody {
+		errs = append(errs, fmt.Sprintf("expected %s got %s", expectedBody, string(b)))
+	}
+
+	if err := errs.Combine(); err != nil {
+		suite.FailNow("", "%v (body %s)", err, string(b))
+	}
+}
+
+func (suite *InboxPostTestSuite) newBlock(blockID string, blockingAccount *gtsmodel.Account, blockedAccount *gtsmodel.Account) vocab.ActivityStreamsBlock {
 	block := streams.NewActivityStreamsBlock()
 
 	// set the actor property to the block-ing account's URI
@@ -59,7 +130,7 @@ func (suite *InboxPostTestSuite) TestPostBlock() {
 
 	// set the ID property to the blocks's URI
 	idProp := streams.NewJSONLDIdProperty()
-	idProp.Set(blockURI)
+	idProp.Set(testrig.URLMustParse(blockID))
 	block.SetJSONLDId(idProp)
 
 	// set the object property to the target account's URI
@@ -74,57 +145,32 @@ func (suite *InboxPostTestSuite) TestPostBlock() {
 	toProp.AppendIRI(toIRI)
 	block.SetActivityStreamsTo(toProp)
 
-	targetURI := testrig.URLMustParse(blockedAccount.InboxURI)
+	return block
+}
 
-	signature, digestHeader, dateHeader := testrig.GetSignatureForActivity(block, blockingAccount.PublicKeyURI, blockingAccount.PrivateKey, targetURI)
-	bodyI, err := ap.Serialize(block)
-	suite.NoError(err)
+func (suite *InboxPostTestSuite) TestPostBlock() {
+	var (
+		requestingAccount = suite.testAccounts["remote_account_1"]
+		targetAccount     = suite.testAccounts["local_account_1"]
+		activityID        = requestingAccount.URI + "/some-new-activity/01FG9C441MCTW3R2W117V2PQK3"
+	)
 
-	bodyJson, err := json.Marshal(bodyI)
-	suite.NoError(err)
-	body := bytes.NewReader(bodyJson)
-
-	tc := testrig.NewTestTransportController(&suite.state, testrig.NewMockHTTPClient(nil, "../../../../testrig/media"))
-	federator := testrig.NewTestFederator(&suite.state, tc, suite.mediaManager)
-	emailSender := testrig.NewEmailSender("../../../../web/template/", nil)
-	processor := testrig.NewTestProcessor(&suite.state, federator, emailSender, suite.mediaManager)
-	userModule := users.New(processor)
-	suite.NoError(processor.Start())
-
-	// setup request
-	recorder := httptest.NewRecorder()
-	ctx, _ := testrig.CreateGinTestContext(recorder, nil)
-	ctx.Request = httptest.NewRequest(http.MethodPost, targetURI.String(), body) // the endpoint we're hitting
-	ctx.Request.Header.Set("Signature", signature)
-	ctx.Request.Header.Set("Date", dateHeader)
-	ctx.Request.Header.Set("Digest", digestHeader)
-	ctx.Request.Header.Set("Content-Type", "application/activity+json")
-
-	// we need to pass the context through signature check first to set appropriate values on it
-	suite.signatureCheck(ctx)
-
-	// normally the router would populate these params from the path values,
-	// but because we're calling the function directly, we need to set them manually.
-	ctx.Params = gin.Params{
-		gin.Param{
-			Key:   users.UsernameKey,
-			Value: blockedAccount.Username,
-		},
-	}
-
-	// trigger the function being tested
-	userModule.InboxPOSTHandler(ctx)
-
-	result := recorder.Result()
-	defer result.Body.Close()
-	b, err := ioutil.ReadAll(result.Body)
-	suite.NoError(err)
-	suite.Empty(b)
+	block := suite.newBlock(activityID, requestingAccount, targetAccount)
+	suite.inboxPost(block, requestingAccount, targetAccount, http.StatusAccepted, "")
 
 	// there should be a block in the database now between the accounts
-	dbBlock, err := suite.db.GetBlock(context.Background(), blockingAccount.ID, blockedAccount.ID)
-	suite.NoError(err)
-	suite.NotNil(dbBlock)
+	var (
+		dbBlock *gtsmodel.Block
+		err     error
+	)
+
+	if !testrig.WaitFor(func() bool {
+		dbBlock, err = suite.db.GetBlock(context.Background(), requestingAccount.ID, targetAccount.ID)
+		return err == nil && dbBlock != nil
+	}) {
+		suite.FailNow("timed out waiting for block to be created")
+	}
+
 	suite.WithinDuration(time.Now(), dbBlock.CreatedAt, 30*time.Second)
 	suite.WithinDuration(time.Now(), dbBlock.UpdatedAt, 30*time.Second)
 	suite.Equal("http://fossbros-anonymous.io/users/foss_satan/blocks/01FG9C441MCTW3R2W117V2PQK3", dbBlock.URI)

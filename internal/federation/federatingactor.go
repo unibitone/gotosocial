@@ -20,6 +20,7 @@ package federation
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -152,7 +153,7 @@ func (f *federatingActor) PostInboxScheme(ctx context.Context, w http.ResponseWr
 
 	activity, ok := t.(pub.Activity)
 	if !ok {
-		err = fmt.Errorf("ActivityStreams value with type %T is not a pub.Activity", t)
+		err = fmt.Errorf("PostInboxScheme: ActivityStreams value with type %T is not a pub.Activity", t)
 		return true, err
 	}
 
@@ -199,20 +200,22 @@ func (f *federatingActor) PostInboxScheme(ctx context.Context, w http.ResponseWr
 		// target properties needed to be populated, but weren't.
 		//
 		// Send the rejection to the peer.
-		if err == pub.ErrObjectRequired || err == pub.ErrTargetRequired {
+		if errors.Is(err, pub.ErrObjectRequired) || errors.Is(err, pub.ErrTargetRequired) {
 			l.Debugf("malformed incoming Activity: %s", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return true, nil
 		}
+
+		// There's been some real error.
 		err = fmt.Errorf("PostInboxScheme: error calling sideEffectActor.PostInbox: %w", err)
 		return true, err
 	}
 
-	// Our side effects are complete, now delegate determining whether to do inbox forwarding, as well as the action to do it.
-	if err := f.sideEffectActor.InboxForwarding(ctx, inboxID, activity); err != nil {
-		err = fmt.Errorf("PostInboxScheme: error calling sideEffectActor.InboxForwarding: %w", err)
-		return true, err
-	}
+	// // Our side effects are complete, now delegate determining whether to do inbox forwarding, as well as the action to do it.
+	// if err := f.sideEffectActor.InboxForwarding(ctx, inboxID, activity); err != nil {
+	// 	err = fmt.Errorf("PostInboxScheme: error calling sideEffectActor.InboxForwarding: %w", err)
+	// 	return true, err
+	// }
 
 	// Request is now undergoing processing.
 	// Respond with an Accepted status.

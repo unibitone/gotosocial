@@ -21,13 +21,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"codeberg.org/gruf/go-kv"
 	"codeberg.org/gruf/go-logger/v2/level"
 	"github.com/superseriousbusiness/activity/streams/vocab"
 	"github.com/superseriousbusiness/gotosocial/internal/ap"
 	"github.com/superseriousbusiness/gotosocial/internal/db"
+	"github.com/superseriousbusiness/gotosocial/internal/gtserror"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/id"
 	"github.com/superseriousbusiness/gotosocial/internal/log"
@@ -66,9 +66,6 @@ func (f *federatingDB) Create(ctx context.Context, asType vocab.Type) error {
 	}
 
 	switch asType.GetTypeName() {
-	case ap.ActivityBlock:
-		// BLOCK SOMETHING
-		return f.activityBlock(ctx, asType, receivingAccount, requestingAccount)
 	case ap.ActivityCreate:
 		// CREATE SOMETHING
 		return f.activityCreate(ctx, asType, receivingAccount, requestingAccount)
@@ -122,41 +119,52 @@ func (f *federatingDB) activityBlock(ctx context.Context, asType vocab.Type, rec
 func (f *federatingDB) activityCreate(ctx context.Context, asType vocab.Type, receivingAccount *gtsmodel.Account, requestingAccount *gtsmodel.Account) error {
 	create, ok := asType.(vocab.ActivityStreamsCreate)
 	if !ok {
-		return errors.New("activityCreate: could not convert type to create")
+		return errors.New("activityCreate: could resolve %T to Create")
 	}
 
-	// create should have an object
+	// Create should have an object.
 	object := create.GetActivityStreamsObject()
 	if object == nil {
 		return errors.New("Create had no Object")
 	}
 
-	errs := []string{}
-	// iterate through the object(s) to see what we're meant to be creating
-	for objectIter := object.Begin(); objectIter != object.End(); objectIter = objectIter.Next() {
-		asObjectType := objectIter.GetType()
-		if asObjectType == nil {
-			// currently we can't do anything with just a Create of something that's not an Object with a type
-			// TODO: process a Create with an Object that's just a URI or something
-			errs = append(errs, "object of Create was not a Type")
+	// Iterate through the Object(s) to see what we're meant to be creating.
+	errs := make(gtserror.MultiError, 0, object.Len())
+	for iter := object.Begin(); iter != object.End(); iter = iter.Next() {
+		objectType := iter.GetType()
+		if objectType == nil {
+			// Currently we can't do anything with just a Create
+			// of something that's not an Object with a type.
+			errs.Append(errors.New("object of Create was not a Type"))
 			continue
 		}
 
-		// we have a type -- what is it?
-		asObjectTypeName := asObjectType.GetTypeName()
-		switch asObjectTypeName {
+		// Process object according to its type.
+		// TODO: possibly add more types here.
+		switch typeName := objectType.GetTypeName(); typeName {
 		case ap.ObjectNote:
 			// CREATE A NOTE
-			if err := f.createNote(ctx, objectIter.GetActivityStreamsNote(), receivingAccount, requestingAccount); err != nil {
-				errs = append(errs, err.Error())
+			if err := f.createNote(
+				ctx,
+				iter.GetActivityStreamsNote(),
+				receivingAccount,
+				requestingAccount,
+			); err != nil {
+				errs.Append(err)
 			}
 		default:
-			errs = append(errs, fmt.Sprintf("received an object on a Create that we couldn't handle: %s", asObjectType.GetTypeName()))
+			log.WithContext(ctx).
+				WithFields(kv.Fields{
+					{"receivingAccount", receivingAccount.URI},
+					{"requestingAccount", requestingAccount.URI},
+					{"typeName", typeName},
+				}...).
+				Debug("Object of Create was a type we couldn't handle")
 		}
 	}
 
 	if len(errs) != 0 {
-		return fmt.Errorf("activityCreate: one or more errors while processing activity: %s", strings.Join(errs, "; "))
+		return fmt.Errorf("activityCreate: one or more errors while processing activity: %w", errs.Combine())
 	}
 
 	return nil
@@ -164,43 +172,44 @@ func (f *federatingDB) activityCreate(ctx context.Context, asType vocab.Type, re
 
 // createNote handles a Create activity with a Note type.
 func (f *federatingDB) createNote(ctx context.Context, note vocab.ActivityStreamsNote, receivingAccount *gtsmodel.Account, requestingAccount *gtsmodel.Account) error {
-	l := log.WithContext(ctx).
-		WithFields(kv.Fields{
-			{"receivingAccount", receivingAccount.URI},
-			{"requestingAccount", requestingAccount.URI},
-		}...)
-
-	// Check if we have a forward.
-	// In other words, was the note posted to our inbox by at least one actor who actually created the note, or are they just forwarding it?
-	forward := true
-
-	// note should have an attributedTo
+	// Note must have an attributedTo for us to process it.
 	noteAttributedTo := note.GetActivityStreamsAttributedTo()
 	if noteAttributedTo == nil {
 		return errors.New("createNote: note had no attributedTo")
 	}
 
-	// compare the attributedTo(s) with the actor who posted this to our inbox
-	for attributedToIter := noteAttributedTo.Begin(); attributedToIter != noteAttributedTo.End(); attributedToIter = attributedToIter.Next() {
-		if !attributedToIter.IsIRI() {
+	// Check if we have a forward. In other words, was the
+	// note posted to our inbox by at least one actor who
+	// created the note, or are they just forwarding it?
+	forward := true
+
+	// Compare the attributedTo(s) with the URI of the Actor
+	// who posted this to our inbox. If the actor who posted
+	// the Note to our inbox is the same as at least one of
+	// the creators of the Note, then it's not a forward.
+	for iter := noteAttributedTo.Begin(); iter != noteAttributedTo.End(); iter = iter.Next() {
+		if !iter.IsIRI() {
 			continue
 		}
-		iri := attributedToIter.GetIRI()
-		if requestingAccount.URI == iri.String() {
-			// at least one creator of the note, and the actor who posted the note to our inbox, are the same, so it's not a forward
+
+		if iri := iter.GetIRI(); iri != nil && iri.String() == requestingAccount.URI {
 			forward = false
+			break
 		}
 	}
 
-	// If we do have a forward, we should ignore the content for now and just dereference based on the URL/ID of the note instead, to get the note straight from the horse's mouth
+	// If we do have a forward, we should ignore the content for
+	// now and just dereference based on the URL/ID of the note
+	// instead, to get the content straight from the poster's mouth.
 	if forward {
-		l.Trace("note is a forward")
 		id := note.GetJSONLDId()
 		if !id.IsIRI() {
-			// if the note id isn't an IRI, there's nothing we can do here
+			// If the ID isn't an IRI, then firstly this
+			// is weird, and secondly we can't process it.
 			return nil
 		}
-		// pass the note iri into the processor and have it do the dereferencing instead of doing it here
+
+		// Process the Note asynchronously, we're done here.
 		f.state.Workers.EnqueueFederator(ctx, messages.FromFederator{
 			APObjectType:     ap.ObjectNote,
 			APActivityType:   ap.ActivityCreate,
@@ -209,33 +218,39 @@ func (f *federatingDB) createNote(ctx context.Context, note vocab.ActivityStream
 			GTSModel:         nil,
 			ReceivingAccount: receivingAccount,
 		})
+
 		return nil
 	}
 
-	// if we reach this point, we know it's not a forwarded status, so proceed with processing it as normal
-
+	// If we reach this point, we know the status wasn't forwarded
+	// to us, but was delivered by at least one of the Actors who
+	// created it, so proceed with processing it as normal.
 	status, err := f.typeConverter.ASStatusToStatus(ctx, note)
 	if err != nil {
-		return fmt.Errorf("createNote: error converting note to status: %s", err)
+		return fmt.Errorf("createNote: error converting note to status: %w", err)
 	}
 
-	// id the status based on the time it was created
+	// id the status based on the time it was created;
+	// this allows for backdating of statuses.
 	statusID, err := id.NewULIDFromTime(status.CreatedAt)
 	if err != nil {
-		return err
+		return fmt.Errorf("createNote: error creating id for note: %w", err)
 	}
 	status.ID = statusID
 
 	if err := f.state.DB.PutStatus(ctx, status); err != nil {
 		if errors.Is(err, db.ErrAlreadyExists) {
-			// the status already exists in the database, which means we've already handled everything else,
-			// so we can just return nil here and be done with it.
+			// The status already exists in the database, which
+			// means we've already handled everything else, so
+			// we can just return nil here and be done with it.
 			return nil
 		}
-		// an actual error has happened
-		return fmt.Errorf("createNote: database error inserting status: %s", err)
+
+		// An actual error has happened.
+		return fmt.Errorf("createNote: database error inserting status: %w", err)
 	}
 
+	// Do further processing asynchronously.
 	f.state.Workers.EnqueueFederator(ctx, messages.FromFederator{
 		APObjectType:     ap.ObjectNote,
 		APActivityType:   ap.ActivityCreate,
