@@ -39,7 +39,7 @@ type ProcessingStandardTestSuite struct {
 	db                  db.DB
 	storage             *storage.Driver
 	state               state.State
-	mediaManager        media.Manager
+	mediaManager        *media.Manager
 	typeconverter       typeutils.TypeConverter
 	httpClient          *testrig.MockHTTPClient
 	transportController transport.Controller
