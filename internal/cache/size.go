@@ -155,6 +155,7 @@ func totalOfRatios() float64 {
 	return 0 +
 		config.GetCacheAccountMemRatio() +
 		config.GetCacheAccountNoteMemRatio() +
+		config.GetCacheAccountPreferencesMemRatio() +
 		config.GetCacheBlockMemRatio() +
 		config.GetCacheBlockIDsMemRatio() +
 		config.GetCacheBoostOfIDsMemRatio() +
@@ -199,9 +200,6 @@ func sizeofAccount() uintptr {
 		Bot:                     func() *bool { ok := true; return &ok }(),
 		Locked:                  func() *bool { ok := true; return &ok }(),
 		Discoverable:            func() *bool { ok := false; return &ok }(),
-		Privacy:                 gtsmodel.VisibilityFollowersOnly,
-		Sensitive:               func() *bool { ok := true; return &ok }(),
-		Language:                "fr",
 		URI:                     exampleURI,
 		URL:                     exampleURI,
 		InboxURI:                exampleURI,
@@ -216,9 +214,7 @@ func sizeofAccount() uintptr {
 		SensitizedAt:            time.Time{},
 		SilencedAt:              time.Now(),
 		SuspendedAt:             time.Now(),
-		HideCollections:         func() *bool { ok := true; return &ok }(),
 		SuspensionOrigin:        "",
-		EnableRSS:               func() *bool { ok := true; return &ok }(),
 	}))
 }
 
@@ -228,6 +224,19 @@ func sizeofAccountNote() uintptr {
 		AccountID:       exampleID,
 		TargetAccountID: exampleID,
 		Comment:         exampleTextSmall,
+	}))
+}
+
+func sizeofAccountPreferences() uintptr {
+	return uintptr(size.Of(&gtsmodel.AccountPreferences{
+		ID:                exampleID,
+		AccountID:         exampleID,
+		StatusLanguage:    "fr",
+		StatusPrivacy:     gtsmodel.VisibilityFollowersOnly,
+		StatusSensitive:   func() *bool { ok := true; return &ok }(),
+		StatusContentType: "text/plain",
+		HideCollections:   func() *bool { ok := true; return &ok }(),
+		EnableRSS:         func() *bool { ok := true; return &ok }(),
 	}))
 }
 

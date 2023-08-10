@@ -30,6 +30,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/ap"
 	"github.com/superseriousbusiness/gotosocial/internal/config"
 	"github.com/superseriousbusiness/gotosocial/internal/db"
+	"github.com/superseriousbusiness/gotosocial/internal/gtscontext"
 	"github.com/superseriousbusiness/gotosocial/internal/gtserror"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/id"
@@ -95,7 +96,10 @@ func (a *adminDB) NewSignup(ctx context.Context, newSignup gtsmodel.NewSignup) (
 	// If something went wrong previously while doing a new
 	// sign up with this username, we might already have an
 	// account, so check first.
-	account, err := a.state.DB.GetAccountByUsernameDomain(ctx, newSignup.Username, "")
+	account, err := a.state.DB.GetAccountByUsernameDomain(
+		gtscontext.SetBarebones(ctx),
+		newSignup.Username, "",
+	)
 	if err != nil && !errors.Is(err, db.ErrNoEntries) {
 		// Real error occurred.
 		err := gtserror.Newf("error checking for existing account: %w", err)
@@ -124,7 +128,6 @@ func (a *adminDB) NewSignup(ctx context.Context, newSignup gtsmodel.NewSignup) (
 			Username:              newSignup.Username,
 			DisplayName:           newSignup.Username,
 			Reason:                newSignup.Reason,
-			Privacy:               gtsmodel.VisibilityDefault,
 			URI:                   uris.UserURI,
 			URL:                   uris.UserURL,
 			InboxURI:              uris.InboxURI,
@@ -136,6 +139,7 @@ func (a *adminDB) NewSignup(ctx context.Context, newSignup gtsmodel.NewSignup) (
 			PrivateKey:            privKey,
 			PublicKey:             &privKey.PublicKey,
 			PublicKeyURI:          uris.PublicKeyURI,
+			PreferencesID:         id.NewULID(),
 		}
 
 		// Insert the new account!
@@ -145,6 +149,33 @@ func (a *adminDB) NewSignup(ctx context.Context, newSignup gtsmodel.NewSignup) (
 	}
 
 	// Created or already had an account.
+	// Create account preferences
+	// if not done already.
+	accountPrefs, err := a.state.DB.GetAccountPreferencesByAccountID(ctx, account.ID)
+	if err != nil && !errors.Is(err, db.ErrNoEntries) {
+		// Real error.
+		err := gtserror.Newf("error checking for existing account preferences: %w", err)
+		return nil, err
+	}
+
+	if accountPrefs == nil {
+		// No preferences created for
+		// this account yet, do it now.
+		accountPrefs = &gtsmodel.AccountPreferences{
+			ID:             account.PreferencesID,
+			AccountID:      account.ID,
+			StatusPrivacy:  gtsmodel.VisibilityDefault,
+			StatusLanguage: newSignup.Locale,
+		}
+
+		if err := a.state.DB.PutAccountPreferences(ctx, accountPrefs); err != nil {
+			err := gtserror.Newf("db error inserting account preferences: %w", err)
+			return nil, err
+		}
+
+		account.Preferences = accountPrefs
+	}
+
 	// Ensure user not already created.
 	user, err := a.state.DB.GetUserByAccountID(ctx, account.ID)
 	if err != nil && !errors.Is(err, db.ErrNoEntries) {

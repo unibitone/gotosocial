@@ -94,10 +94,6 @@ func (suite *BasicTestSuite) TestPutAccountWithBunDefaultFields() {
 	// to true, which is why we use pointers for bools in the first place
 	suite.True(*a.Locked)
 	suite.False(*a.Discoverable)
-	suite.Empty(a.Privacy)
-	suite.False(*a.Sensitive)
-	suite.Equal("en", a.Language)
-	suite.Empty(a.StatusContentType)
 	suite.Equal(testAccount.URI, a.URI)
 	suite.Equal(testAccount.URL, a.URL)
 	suite.Zero(testAccount.FetchedAt)
@@ -113,7 +109,6 @@ func (suite *BasicTestSuite) TestPutAccountWithBunDefaultFields() {
 	suite.Zero(a.SensitizedAt)
 	suite.Zero(a.SilencedAt)
 	suite.Zero(a.SuspendedAt)
-	suite.False(*a.HideCollections)
 	suite.Empty(a.SuspensionOrigin)
 }
 

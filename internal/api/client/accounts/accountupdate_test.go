@@ -477,7 +477,7 @@ func (suite *AccountUpdateTestSuite) TestUpdateAccountSourceBadContentTypeFormDa
 	if err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.Equal(data["source[status_content_type]"], dbAccount.StatusContentType)
+	suite.Equal(data["source[status_content_type]"], dbAccount.Preferences.StatusContentType)
 }
 
 func (suite *AccountUpdateTestSuite) TestAccountUpdateCredentialsPATCHHandlerUpdateStatusContentTypeBad() {

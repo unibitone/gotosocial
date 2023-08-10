@@ -290,6 +290,16 @@ func (a *accountDB) PopulateAccount(ctx context.Context, account *gtsmodel.Accou
 		}
 	}
 
+	if account.PreferencesID != "" && account.Preferences == nil {
+		account.Preferences, err = a.getAccountPreferencesByID(
+			ctx, // these are already barebones
+			account.PreferencesID,
+		)
+		if err != nil {
+			errs.Appendf("error populating account preferences: %w", err)
+		}
+	}
+
 	return errs.Combine()
 }
 
@@ -456,12 +466,93 @@ func (a *accountDB) SetAccountHeaderOrAvatar(ctx context.Context, mediaAttachmen
 }
 
 func (a *accountDB) GetAccountCustomCSSByUsername(ctx context.Context, username string) (string, error) {
-	account, err := a.GetAccountByUsernameDomain(ctx, username, "")
+	account, err := a.GetAccountByUsernameDomain(
+		gtscontext.SetBarebones(ctx),
+		username,
+		"",
+	)
 	if err != nil {
 		return "", err
 	}
 
-	return account.CustomCSS, nil
+	if account.PreferencesID == "" {
+		return "", gtserror.Newf("no preferences stored for account %s", account.ID)
+	}
+
+	accountPrefs, err := a.state.DB.GetAccountPreferencesByAccountID(ctx, account.ID)
+	if err != nil {
+		return "", gtserror.Newf("error getting preferences for account %s: %w", account.ID, err)
+	}
+
+	return accountPrefs.CustomCSS, nil
+}
+
+func (a *accountDB) GetAccountPreferencesByAccountID(ctx context.Context, accountID string) (*gtsmodel.AccountPreferences, error) {
+	accountPrefs, err := a.state.Caches.GTS.AccountPreferences().Load("AccountID", func() (*gtsmodel.AccountPreferences, error) {
+		var accountPrefs gtsmodel.AccountPreferences
+
+		// Not cached! Perform database query
+		if err := a.db.NewSelect().
+			Model(&accountPrefs).
+			Where("? = ?", bun.Ident("account_preferences.account_id"), accountID).
+			Scan(ctx); err != nil {
+			return nil, a.db.ProcessError(err)
+		}
+
+		return &accountPrefs, nil
+	}, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	return accountPrefs, nil
+}
+
+func (a *accountDB) getAccountPreferencesByID(ctx context.Context, id string) (*gtsmodel.AccountPreferences, error) {
+	accountPrefs, err := a.state.Caches.GTS.AccountPreferences().Load("ID", func() (*gtsmodel.AccountPreferences, error) {
+		var accountPrefs gtsmodel.AccountPreferences
+
+		// Not cached! Perform database query
+		if err := a.db.NewSelect().
+			Model(&accountPrefs).
+			Where("? = ?", bun.Ident("account_preferences.id"), id).
+			Scan(ctx); err != nil {
+			return nil, a.db.ProcessError(err)
+		}
+
+		return &accountPrefs, nil
+	}, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return accountPrefs, nil
+}
+
+func (a *accountDB) PutAccountPreferences(ctx context.Context, accountPrefs *gtsmodel.AccountPreferences) error {
+	return a.state.Caches.GTS.AccountPreferences().Store(accountPrefs, func() error {
+		// insert the account preferences
+		_, err := a.db.NewInsert().Model(accountPrefs).Exec(ctx)
+		return a.db.ProcessError(err)
+	})
+}
+
+func (a *accountDB) UpdateAccountPreferences(ctx context.Context, accountPrefs *gtsmodel.AccountPreferences, columns ...string) error {
+	accountPrefs.UpdatedAt = time.Now()
+	if len(columns) > 0 {
+		// If we're updating by column, ensure "updated_at" is included.
+		columns = append(columns, "updated_at")
+	}
+
+	return a.state.Caches.GTS.AccountPreferences().Store(accountPrefs, func() error {
+		_, err := a.db.
+			NewUpdate().
+			Model(accountPrefs).
+			Where("? = ?", bun.Ident("account_preferences.id"), accountPrefs.ID).
+			Column(columns...).
+			Exec(ctx)
+		return a.db.ProcessError(err)
+	})
 }
 
 func (a *accountDB) GetAccountsUsingEmoji(ctx context.Context, emojiID string) ([]*gtsmodel.Account, error) {

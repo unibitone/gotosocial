@@ -114,14 +114,6 @@ func (c *converter) ASRepresentationToAccount(ctx context.Context, accountable a
 	memorial := false
 	acct.Memorial = &memorial
 
-	// assume not sensitive (todo)
-	sensitive := false
-	acct.Sensitive = &sensitive
-
-	// assume not hide collections (todo)
-	hideCollections := false
-	acct.HideCollections = &hideCollections
-
 	// locked aka manuallyApprovesFollowers
 	locked := true
 	acct.Locked = &locked // assume locked by default
@@ -139,10 +131,6 @@ func (c *converter) ASRepresentationToAccount(ctx context.Context, accountable a
 	if err == nil {
 		acct.Discoverable = &d
 	}
-
-	// assume not rss feed
-	enableRSS := false
-	acct.EnableRSS = &enableRSS
 
 	// url property
 	url, err := ap.ExtractURL(accountable)

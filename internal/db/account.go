@@ -70,6 +70,16 @@ type Account interface {
 	// GetAccountCustomCSSByUsername returns the custom css of an account on this instance with the given username.
 	GetAccountCustomCSSByUsername(ctx context.Context, username string) (string, error)
 
+	// GetAccountPreferencesByAccountID returns preferences the the given *LOCAL* account.
+	// Will return an error for non-local accounts, or accounts with no preferences stored.
+	GetAccountPreferencesByAccountID(ctx context.Context, accountID string) (*gtsmodel.AccountPreferences, error)
+
+	// PutAccountPreferences inserts the given accountPreferences.
+	PutAccountPreferences(ctx context.Context, accountPreferences *gtsmodel.AccountPreferences) error
+
+	// UpdateAccountPreferences updates the given accountPreferences by ID.
+	UpdateAccountPreferences(ctx context.Context, accountPreferences *gtsmodel.AccountPreferences, columns ...string) error
+
 	// GetAccountFaves fetches faves/likes created by the target accountID.
 	GetAccountFaves(ctx context.Context, accountID string) ([]*gtsmodel.StatusFave, error)
 

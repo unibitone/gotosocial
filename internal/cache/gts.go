@@ -30,33 +30,34 @@ import (
 )
 
 type GTSCaches struct {
-	account          *result.Cache[*gtsmodel.Account]
-	accountNote      *result.Cache[*gtsmodel.AccountNote]
-	block            *result.Cache[*gtsmodel.Block]
-	blockIDs         *SliceCache[string]
-	boostOfIDs       *SliceCache[string]
-	domainBlock      *domain.BlockCache
-	emoji            *result.Cache[*gtsmodel.Emoji]
-	emojiCategory    *result.Cache[*gtsmodel.EmojiCategory]
-	follow           *result.Cache[*gtsmodel.Follow]
-	followIDs        *SliceCache[string]
-	followRequest    *result.Cache[*gtsmodel.FollowRequest]
-	followRequestIDs *SliceCache[string]
-	instance         *result.Cache[*gtsmodel.Instance]
-	inReplyToIDs     *SliceCache[string]
-	list             *result.Cache[*gtsmodel.List]
-	listEntry        *result.Cache[*gtsmodel.ListEntry]
-	marker           *result.Cache[*gtsmodel.Marker]
-	media            *result.Cache[*gtsmodel.MediaAttachment]
-	mention          *result.Cache[*gtsmodel.Mention]
-	notification     *result.Cache[*gtsmodel.Notification]
-	report           *result.Cache[*gtsmodel.Report]
-	status           *result.Cache[*gtsmodel.Status]
-	statusFave       *result.Cache[*gtsmodel.StatusFave]
-	statusFaveIDs    *SliceCache[string]
-	tag              *result.Cache[*gtsmodel.Tag]
-	tombstone        *result.Cache[*gtsmodel.Tombstone]
-	user             *result.Cache[*gtsmodel.User]
+	account            *result.Cache[*gtsmodel.Account]
+	accountNote        *result.Cache[*gtsmodel.AccountNote]
+	accountPreferences *result.Cache[*gtsmodel.AccountPreferences]
+	block              *result.Cache[*gtsmodel.Block]
+	blockIDs           *SliceCache[string]
+	boostOfIDs         *SliceCache[string]
+	domainBlock        *domain.BlockCache
+	emoji              *result.Cache[*gtsmodel.Emoji]
+	emojiCategory      *result.Cache[*gtsmodel.EmojiCategory]
+	follow             *result.Cache[*gtsmodel.Follow]
+	followIDs          *SliceCache[string]
+	followRequest      *result.Cache[*gtsmodel.FollowRequest]
+	followRequestIDs   *SliceCache[string]
+	instance           *result.Cache[*gtsmodel.Instance]
+	inReplyToIDs       *SliceCache[string]
+	list               *result.Cache[*gtsmodel.List]
+	listEntry          *result.Cache[*gtsmodel.ListEntry]
+	marker             *result.Cache[*gtsmodel.Marker]
+	media              *result.Cache[*gtsmodel.MediaAttachment]
+	mention            *result.Cache[*gtsmodel.Mention]
+	notification       *result.Cache[*gtsmodel.Notification]
+	report             *result.Cache[*gtsmodel.Report]
+	status             *result.Cache[*gtsmodel.Status]
+	statusFave         *result.Cache[*gtsmodel.StatusFave]
+	statusFaveIDs      *SliceCache[string]
+	tag                *result.Cache[*gtsmodel.Tag]
+	tombstone          *result.Cache[*gtsmodel.Tombstone]
+	user               *result.Cache[*gtsmodel.User]
 
 	// TODO: move out of GTS caches since unrelated to DB.
 	webfinger *ttl.Cache[string, string] // TTL=24hr, sweep=5min
@@ -67,6 +68,7 @@ type GTSCaches struct {
 func (c *GTSCaches) Init() {
 	c.initAccount()
 	c.initAccountNote()
+	c.initAccountPreferences()
 	c.initBlock()
 	c.initBlockIDs()
 	c.initBoostOfIDs()
@@ -115,6 +117,11 @@ func (c *GTSCaches) Account() *result.Cache[*gtsmodel.Account] {
 // AccountNote provides access to the gtsmodel Note database cache.
 func (c *GTSCaches) AccountNote() *result.Cache[*gtsmodel.AccountNote] {
 	return c.accountNote
+}
+
+// AccountPreferences provides access to the gtsmodel AccountPreferences database cache.
+func (c *GTSCaches) AccountPreferences() *result.Cache[*gtsmodel.AccountPreferences] {
+	return c.accountPreferences
 }
 
 // Block provides access to the gtsmodel Block (account) database cache.
@@ -301,6 +308,26 @@ func (c *GTSCaches) initAccountNote() {
 	}, cap)
 
 	c.accountNote.IgnoreErrors(ignoreErrors)
+}
+
+func (c *GTSCaches) initAccountPreferences() {
+	// Calculate maximum cache size.
+	cap := calculateResultCacheMax(
+		sizeofAccountPreferences(), // model in-mem size.
+		config.GetCacheAccountPreferencesMemRatio(),
+	)
+	log.Infof(nil, "AccountPreferences cache size = %d", cap)
+
+	c.accountPreferences = result.New([]result.Lookup{
+		{Name: "ID"},
+		{Name: "AccountID"},
+	}, func(p1 *gtsmodel.AccountPreferences) *gtsmodel.AccountPreferences {
+		p2 := new(gtsmodel.AccountPreferences)
+		*p2 = *p1
+		return p2
+	}, cap)
+
+	c.accountPreferences.IgnoreErrors(ignoreErrors)
 }
 
 func (c *GTSCaches) initBlock() {

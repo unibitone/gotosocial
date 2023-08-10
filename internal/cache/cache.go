@@ -229,6 +229,7 @@ func (c *Caches) setuphooks() {
 func (c *Caches) Sweep(threshold float64) {
 	c.GTS.Account().Trim(threshold)
 	c.GTS.AccountNote().Trim(threshold)
+	c.GTS.AccountPreferences().Trim(threshold)
 	c.GTS.Block().Trim(threshold)
 	c.GTS.BlockIDs().Trim(threshold)
 	c.GTS.Emoji().Trim(threshold)

@@ -59,29 +59,47 @@ func toMastodonVersion(in string) string {
 }
 
 func (c *converter) AccountToAPIAccountSensitive(ctx context.Context, a *gtsmodel.Account) (*apimodel.Account, error) {
-	// we can build this sensitive account easily by first getting the public account....
+	// Build sensitive view of account by first
+	// getting the public account and then adding
+	// additional information for the eyes of this
+	// account owner only.
 	apiAccount, err := c.AccountToAPIAccountPublic(ctx, a)
 	if err != nil {
 		return nil, err
 	}
 
-	// then adding the Source object to it...
-
-	// check pending follow requests aimed at this account
-	frc, err := c.db.CountAccountFollowRequests(ctx, a.ID)
-	if err != nil {
-		return nil, fmt.Errorf("error counting follow requests: %s", err)
+	// Ensure account preferences populated.
+	// Accounts passed in to this function
+	// should always be local accounts, so
+	// a missing account preferences struct
+	// is a real problem!
+	if a.Preferences == nil {
+		var err error
+		a.Preferences, err = c.db.GetAccountPreferencesByAccountID(ctx, a.ID)
+		if err != nil {
+			return nil, gtserror.Newf("error getting account preferences: %w", err)
+		}
 	}
 
-	statusContentType := string(apimodel.StatusContentTypeDefault)
-	if a.StatusContentType != "" {
-		statusContentType = a.StatusContentType
+	// Count pending follow requests aimed at this account.
+	frc, err := c.db.CountAccountFollowRequests(ctx, a.ID)
+	if err != nil {
+		return nil, gtserror.Newf("error counting follow requests: %w", err)
+	}
+
+	// Use default status content type
+	// if account has no other preference.
+	var statusContentType string
+	if a.Preferences.StatusContentType != "" {
+		statusContentType = a.Preferences.StatusContentType
+	} else {
+		statusContentType = string(apimodel.StatusContentTypeDefault)
 	}
 
 	apiAccount.Source = &apimodel.Source{
-		Privacy:             c.VisToAPIVis(ctx, a.Privacy),
-		Sensitive:           *a.Sensitive,
-		Language:            a.Language,
+		Privacy:             c.VisToAPIVis(ctx, a.Preferences.StatusPrivacy),
+		Sensitive:           *a.Preferences.StatusSensitive,
+		Language:            a.Preferences.StatusLanguage,
 		StatusContentType:   statusContentType,
 		Note:                a.NoteRaw,
 		Fields:              c.fieldsToAPIFields(a.FieldsRaw),
@@ -104,23 +122,23 @@ func (c *converter) AccountToAPIAccountPublic(ctx context.Context, a *gtsmodel.A
 
 	followersCount, err := c.db.CountAccountFollowers(ctx, a.ID)
 	if err != nil && !errors.Is(err, db.ErrNoEntries) {
-		return nil, fmt.Errorf("AccountToAPIAccountPublic: error counting followers: %w", err)
+		return nil, gtserror.Newf("error counting followers: %w", err)
 	}
 
 	followingCount, err := c.db.CountAccountFollows(ctx, a.ID)
 	if err != nil && !errors.Is(err, db.ErrNoEntries) {
-		return nil, fmt.Errorf("AccountToAPIAccountPublic: error counting following: %w", err)
+		return nil, gtserror.Newf("error counting following: %w", err)
 	}
 
 	statusesCount, err := c.db.CountAccountStatuses(ctx, a.ID)
 	if err != nil && !errors.Is(err, db.ErrNoEntries) {
-		return nil, fmt.Errorf("AccountToAPIAccountPublic: error counting statuses: %w", err)
+		return nil, gtserror.Newf("error counting statuses: %w", err)
 	}
 
 	var lastStatusAt *string
 	lastPosted, err := c.db.GetAccountLastPosted(ctx, a.ID, false)
 	if err != nil && !errors.Is(err, db.ErrNoEntries) {
-		return nil, fmt.Errorf("AccountToAPIAccountPublic: error counting statuses: %w", err)
+		return nil, gtserror.Newf("error counting statuses: %w", err)
 	}
 
 	if !lastPosted.IsZero() {
@@ -164,40 +182,55 @@ func (c *converter) AccountToAPIAccountPublic(ctx context.Context, a *gtsmodel.A
 	//   - Role.
 
 	var (
-		acct string
-		role *apimodel.AccountRole
+		acct      string
+		role      *apimodel.AccountRole
+		customCSS string
+		enableRSS bool
 	)
 
-	if a.IsRemote() {
-		// Domain may be in Punycode,
-		// de-punify it just in case.
+	switch {
+
+	// Only extra thing we can do for
+	// remote accounts is properly
+	// de-punify their domain.
+	case a.IsRemote():
 		d, err := util.DePunify(a.Domain)
 		if err != nil {
-			return nil, fmt.Errorf("AccountToAPIAccountPublic: error de-punifying domain %s for account id %s: %w", a.Domain, a.ID, err)
+			return nil, gtserror.Newf("error de-punifying domain %s for account %s: %w", a.Domain, a.ID, err)
 		}
 
 		acct = a.Username + "@" + d
-	} else {
-		// This is a local account, try to
-		// fetch more info. Skip for instance
-		// accounts since they have no user.
-		if !a.IsInstance() {
-			user, err := c.db.GetUserByAccountID(ctx, a.ID)
-			if err != nil {
-				return nil, fmt.Errorf("AccountToAPIAccountPublic: error getting user from database for account id %s: %w", a.ID, err)
-			}
 
-			switch {
-			case *user.Admin:
-				role = &apimodel.AccountRole{Name: apimodel.AccountRoleAdmin}
-			case *user.Moderator:
-				role = &apimodel.AccountRole{Name: apimodel.AccountRoleModerator}
-			default:
-				role = &apimodel.AccountRole{Name: apimodel.AccountRoleUser}
-			}
+	// This is a non-instance local
+	// account; fetch more info using
+	// the account User. We skip this
+	// step for instance accounts since
+	// they have no user.
+	case !a.IsInstance():
+		user, err := c.db.GetUserByAccountID(ctx, a.ID)
+		if err != nil {
+			return nil, gtserror.Newf("db error getting user for account %s: %w", a.ID, err)
 		}
 
-		acct = a.Username // omit domain
+		switch {
+		case *user.Admin:
+			role = &apimodel.AccountRole{Name: apimodel.AccountRoleAdmin}
+		case *user.Moderator:
+			role = &apimodel.AccountRole{Name: apimodel.AccountRoleModerator}
+		default:
+			role = &apimodel.AccountRole{Name: apimodel.AccountRoleUser}
+		}
+
+		fallthrough // to below lines
+
+	// Fetch info which applies to
+	// local instance account and
+	// to actual local accounts.
+	default:
+		if a.Preferences != nil {
+			customCSS = a.Preferences.CustomCSS
+			enableRSS = *a.Preferences.EnableRSS
+		}
 	}
 
 	// Remaining properties are simple and
@@ -225,8 +258,8 @@ func (c *converter) AccountToAPIAccountPublic(ctx context.Context, a *gtsmodel.A
 		Emojis:         apiEmojis,
 		Fields:         fields,
 		Suspended:      !a.SuspendedAt.IsZero(),
-		CustomCSS:      a.CustomCSS,
-		EnableRSS:      *a.EnableRSS,
+		CustomCSS:      customCSS,
+		EnableRSS:      enableRSS,
 		Role:           role,
 	}
 
@@ -279,7 +312,7 @@ func (c *converter) AccountToAPIAccountBlocked(ctx context.Context, a *gtsmodel.
 		if !a.IsInstance() {
 			user, err := c.db.GetUserByAccountID(ctx, a.ID)
 			if err != nil {
-				return nil, fmt.Errorf("AccountToAPIAccountPublic: error getting user from database for account id %s: %w", a.ID, err)
+				return nil, gtserror.Newf("error getting user from database for account id %s: %w", a.ID, err)
 			}
 
 			switch {
