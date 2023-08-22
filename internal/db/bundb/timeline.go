@@ -19,7 +19,6 @@ package bundb
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -31,6 +30,7 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/log"
 	"github.com/superseriousbusiness/gotosocial/internal/state"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 	"golang.org/x/exp/slices"
 )
 
@@ -103,38 +103,67 @@ func (t *timelineDB) GetHomeTimeline(ctx context.Context, accountID string, maxI
 		q = q.Order("status.id ASC")
 	}
 
-	// As this is the home timeline, it should be
-	// populated by statuses from accounts followed
-	// by accountID, and posts from accountID itself.
-	//
-	// So, begin by seeing who accountID follows.
-	// It should be a little cheaper to do this in
-	// a separate query like this, rather than using
-	// a join, since followIDs are cached in memory.
-	follows, err := t.state.DB.GetAccountFollows(
-		gtscontext.SetBarebones(ctx),
-		accountID,
+	// Create a temp table containing just the
+	// IDs of accounts that accountID follows.
+	var (
+		tempTableName = "#temp_follows_" + id.NewULID()
+		err           error
 	)
-	if err != nil && !errors.Is(err, db.ErrNoEntries) {
-		return nil, gtserror.Newf("db error getting follows for account %s: %w", accountID, err)
+
+	switch t.db.Dialect().Name() {
+	case dialect.PG:
+		_, err = t.db.NewRaw(
+			"SELECT ? INTO ? FROM ? AS ? WHERE ? = ?",
+			bun.Ident("follow.target_account_id"),
+			bun.Ident(tempTableName),
+			bun.Ident("follows"), bun.Ident("follow"),
+			bun.Ident("follow.account_id"), accountID,
+		).Exec(ctx)
+	case dialect.SQLite:
+		_, err = t.db.NewRaw(
+			"CREATE TABLE ? AS SELECT ? FROM ? AS ? WHERE ? = ?",
+			bun.Ident(tempTableName),
+			bun.Ident("follow.target_account_id"),
+			bun.Ident("follows"), bun.Ident("follow"),
+			bun.Ident("follow.account_id"), accountID,
+		).Exec(ctx)
+	default:
+		log.Panic(ctx, "db dialect was neither pg nor sqlite")
 	}
 
-	// Extract just the accountID from each follow.
-	targetAccountIDs := make([]string, len(follows)+1)
-	for i, f := range follows {
-		targetAccountIDs[i] = f.TargetAccountID
+	if err != nil {
+		return nil, gtserror.Newf("db error creating temp follows table: %w", err)
 	}
+
+	// Clean up temp
+	// table on exit.
+	defer func() {
+		if _, err := t.db.
+			NewDropTable().
+			Table(tempTableName).
+			IfExists().
+			Exec(ctx); err != nil {
+			log.Errorf(ctx, "db error dropping temp follows table: %q", err)
+		}
+	}()
 
 	// Add accountID itself as a pseudo follow so that
 	// accountID can see its own posts in the timeline.
-	targetAccountIDs[len(targetAccountIDs)-1] = accountID
+	if _, err := t.db.
+		NewRaw(
+			"INSERT INTO ? VALUES (?)",
+			bun.Ident(tempTableName), accountID,
+		).
+		Exec(ctx); err != nil {
+		return nil, gtserror.Newf("db error inserting accountID into temp follows table: %w", err)
+	}
 
 	// Select only statuses authored by
 	// accounts with IDs in the slice.
 	q = q.Where(
 		"? IN (?)",
 		bun.Ident("status.account_id"),
-		bun.In(targetAccountIDs),
+		t.db.NewSelect().Table(tempTableName),
 	)
 
 	if err := q.Scan(ctx, &statusIDs); err != nil {
