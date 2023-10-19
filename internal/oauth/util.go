@@ -79,7 +79,7 @@ func Authed(c *gin.Context, requireToken bool, requireApp bool, requireUser bool
 	}
 
 	if requireUser && a.User == nil {
-		return nil, errors.New("user not supplied or not authorized")
+		return nil, errors.New("user not supplied, not authorized, not confirmed, or email address unconfirmed")
 	}
 
 	if requireAccount && a.Account == nil {

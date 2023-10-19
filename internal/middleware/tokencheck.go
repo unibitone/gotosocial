@@ -65,6 +65,24 @@ func TokenCheck(dbConn db.DB, validateBearerToken func(r *http.Request) (oauth2.
 		}
 		c.Set(oauth.SessionAuthorizedToken, ti)
 
+		// check for application token
+		if clientID := ti.GetClientID(); clientID != "" {
+			log.Tracef(ctx, "authenticated client %s with bearer token, scope is %s", clientID, ti.GetScope())
+
+			// fetch app for this token
+			app, err := dbConn.GetApplicationByClientID(ctx, clientID)
+			if err != nil {
+				if err != db.ErrNoEntries {
+					log.Errorf(ctx, "database error looking for application with clientID %s: %s", clientID, err)
+					return
+				}
+				log.Warnf(ctx, "no app found for client %s", clientID)
+				return
+			}
+
+			c.Set(oauth.SessionAuthorizedApplication, app)
+		}
+
 		// check for user-level token
 		if userID := ti.GetUserID(); userID != "" {
 			log.Tracef(ctx, "authenticated user %s with bearer token, scope is %s", userID, ti.GetScope())
@@ -81,12 +99,12 @@ func TokenCheck(dbConn db.DB, validateBearerToken func(r *http.Request) (oauth2.
 			}
 
 			if user.ConfirmedAt.IsZero() {
-				log.Warnf(ctx, "authenticated user %s has never confirmed thier email address", userID)
+				log.Warnf(ctx, "authenticated user %s has never confirmed their email address", userID)
 				return
 			}
 
 			if !*user.Approved {
-				log.Warnf(ctx, "authenticated user %s's account was never approved by an admin", userID)
+				log.Warnf(ctx, "authenticated user %s's account not yet approved by an admin", userID)
 				return
 			}
 
@@ -117,24 +135,6 @@ func TokenCheck(dbConn db.DB, validateBearerToken func(r *http.Request) (oauth2.
 			}
 
 			c.Set(oauth.SessionAuthorizedAccount, user.Account)
-		}
-
-		// check for application token
-		if clientID := ti.GetClientID(); clientID != "" {
-			log.Tracef(ctx, "authenticated client %s with bearer token, scope is %s", clientID, ti.GetScope())
-
-			// fetch app for this token
-			app, err := dbConn.GetApplicationByClientID(ctx, clientID)
-			if err != nil {
-				if err != db.ErrNoEntries {
-					log.Errorf(ctx, "database error looking for application with clientID %s: %s", clientID, err)
-					return
-				}
-				log.Warnf(ctx, "no app found for client %s", clientID)
-				return
-			}
-
-			c.Set(oauth.SessionAuthorizedApplication, app)
 		}
 	}
 }

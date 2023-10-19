@@ -70,7 +70,7 @@ var testDefaults = config.Configuration{
 	InstanceDeliverToSharedInboxes: true,
 
 	AccountsRegistrationOpen: true,
-	AccountsApprovalRequired: true,
+	AccountsApprovalRequired: false,
 	AccountsReasonRequired:   true,
 	AccountsAllowCustomCSS:   true,
 	AccountsCustomCSSLength:  10000,
