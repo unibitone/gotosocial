@@ -463,7 +463,7 @@ func (t *timelineDB) GetListTimeline(
 
 func (t *timelineDB) GetTagTimeline(
 	ctx context.Context,
-	tagID string,
+	tagIDs []string,
 	maxID string,
 	sinceID string,
 	minID string,
@@ -492,8 +492,8 @@ func (t *timelineDB) GetTagTimeline(
 		).
 		// Public only.
 		Where("? = ?", bun.Ident("status.visibility"), gtsmodel.VisibilityPublic).
-		// This tag only.
-		Where("? = ?", bun.Ident("status_to_tag.tag_id"), tagID)
+		// Provided tag IDs only.
+		Where("? IN (?)", bun.Ident("status_to_tag.tag_id"), bun.In(tagIDs))
 
 	if maxID == "" || maxID >= id.Highest {
 		const future = 24 * time.Hour

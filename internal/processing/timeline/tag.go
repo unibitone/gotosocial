@@ -32,30 +32,35 @@ import (
 )
 
 // TagTimelineGet gets a pageable timeline for the given
-// tagName and given paging parameters. It will ensure
+// tagNames and given paging parameters. It will ensure
 // that each status in the timeline is actually visible
 // to requestingAcct before returning it.
 func (p *Processor) TagTimelineGet(
 	ctx context.Context,
 	requestingAcct *gtsmodel.Account,
-	tagName string,
+	tagNames []string,
 	maxID string,
 	sinceID string,
 	minID string,
 	limit int,
 ) (*apimodel.PageableResponse, gtserror.WithCode) {
-	tag, errWithCode := p.getTag(ctx, tagName)
-	if errWithCode != nil {
-		return nil, errWithCode
+	tagIDs := make([]string, 0, len(tagNames))
+	for _, tagName := range tagNames {
+		tag, errWithCode := p.getTag(ctx, tagName)
+		if errWithCode != nil {
+			return nil, errWithCode
+		}
+
+		if tag == nil || !*tag.Useable || !*tag.Listable {
+			// Obey mastodon API by returning 404 for this.
+			err := fmt.Errorf("tag was not found, or not useable/listable on this instance")
+			return nil, gtserror.NewErrorNotFound(err, err.Error())
+		}
+
+		tagIDs = append(tagIDs, tag.ID)
 	}
 
-	if tag == nil || !*tag.Useable || !*tag.Listable {
-		// Obey mastodon API by returning 404 for this.
-		err := fmt.Errorf("tag was not found, or not useable/listable on this instance")
-		return nil, gtserror.NewErrorNotFound(err, err.Error())
-	}
-
-	statuses, err := p.state.DB.GetTagTimeline(ctx, tag.ID, maxID, sinceID, minID, limit)
+	statuses, err := p.state.DB.GetTagTimeline(ctx, tagIDs, maxID, sinceID, minID, limit)
 	if err != nil && !errors.Is(err, db.ErrNoEntries) {
 		err = gtserror.Newf("db error getting statuses: %w", err)
 		return nil, gtserror.NewErrorInternalError(err)
@@ -66,8 +71,7 @@ func (p *Processor) TagTimelineGet(
 		requestingAcct,
 		statuses,
 		limit,
-		// Use API URL for tag.
-		"/api/v1/timelines/tag/"+tagName,
+		tagNames,
 	)
 }
 
@@ -95,7 +99,7 @@ func (p *Processor) packageTagResponse(
 	requestingAcct *gtsmodel.Account,
 	statuses []*gtsmodel.Status,
 	limit int,
-	requestPath string,
+	tagNames []string,
 ) (*apimodel.PageableResponse, gtserror.WithCode) {
 	count := len(statuses)
 	if count == 0 {
@@ -131,11 +135,23 @@ func (p *Processor) packageTagResponse(
 		items = append(items, apiStatus)
 	}
 
+	// Use first / "primary" tag for API endpoint.
+	path := "/api/v1/timelines/tag/" + tagNames[0]
+
+	// Add any additional tags.
+	var extraQueryParams []string
+	if len(tagNames) > 1 {
+		for _, tagName := range tagNames[1:] {
+			extraQueryParams = append(extraQueryParams, "any[]="+tagName)
+		}
+	}
+
 	return util.PackagePageableResponse(util.PageableResponseParams{
-		Items:          items,
-		Path:           requestPath,
-		NextMaxIDValue: nextMaxIDValue,
-		PrevMinIDValue: prevMinIDValue,
-		Limit:          limit,
+		Items:            items,
+		Path:             path,
+		NextMaxIDValue:   nextMaxIDValue,
+		PrevMinIDValue:   prevMinIDValue,
+		Limit:            limit,
+		ExtraQueryParams: extraQueryParams,
 	})
 }

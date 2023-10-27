@@ -125,10 +125,17 @@ func (m *Module) TagTimelineGETHandler(c *gin.Context) {
 		return
 	}
 
+	// Append any additional tags
+	// passed as `any[]` parameter.
+	tagNames := append(
+		[]string{tagName},
+		c.QueryArray(apiutil.TagAnyKey)...,
+	)
+
 	resp, errWithCode := m.processor.Timeline().TagTimelineGet(
 		c.Request.Context(),
 		authed.Account,
-		tagName,
+		tagNames,
 		c.Query(apiutil.MaxIDKey),
 		c.Query(apiutil.SinceIDKey),
 		c.Query(apiutil.MinIDKey),

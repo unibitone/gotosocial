@@ -54,6 +54,7 @@ const (
 	/* Tag keys */
 
 	TagNameKey = "tag_name"
+	TagAnyKey  = "any[]"
 
 	/* Web endpoint keys */
 

@@ -311,7 +311,7 @@ func (suite *TimelineTestSuite) TestGetTagTimelineNoParams() {
 		tag = suite.testTags["welcome"]
 	)
 
-	s, err := suite.db.GetTagTimeline(ctx, tag.ID, "", "", "", 1)
+	s, err := suite.db.GetTagTimeline(ctx, []string{tag.ID}, "", "", "", 1)
 	if err != nil {
 		suite.FailNow(err.Error())
 	}

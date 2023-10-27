@@ -49,7 +49,7 @@ type Timeline interface {
 	// Statuses should be returned in descending order of when they were created (newest first).
 	GetListTimeline(ctx context.Context, listID string, maxID string, sinceID string, minID string, limit int) ([]*gtsmodel.Status, error)
 
-	// GetTagTimeline returns a slice of public-visibility statuses that use the given tagID.
+	// GetTagTimeline returns a slice of public-visibility statuses that use the given tagIDs.
 	// Statuses should be returned in descending order of when they were created (newest first).
-	GetTagTimeline(ctx context.Context, tagID string, maxID string, sinceID string, minID string, limit int) ([]*gtsmodel.Status, error)
+	GetTagTimeline(ctx context.Context, tagIDs []string, maxID string, sinceID string, minID string, limit int) ([]*gtsmodel.Status, error)
 }
