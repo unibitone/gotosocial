@@ -99,7 +99,7 @@ Unless you're experienced in doing this kind of tuning and troubleshooting the i
 
 ### Memory and CPU limits
 
-It is possible to limit the amount of memory or CPU your GoToSocial instance can consume. Doing so can be done on Linux using [CGroups v2 resource controllers][cgv2].
+It is possible to limit the amount of memory or CPU your GoToSocial instance can consume. On Linux this can be achieved with [CGroups v2 resource controllers][cgv2].
 
 You can configure limits for a process using [systemd resource control settings][systemdcgv2], [OpenRC cgroup support][openrccgv2] or the [libcgroup CLI][libcg]. If you want to protect GoToSocial in cases where your system is experiencing memory pressure, look at [`memory.low`][cgv2mem].
 
