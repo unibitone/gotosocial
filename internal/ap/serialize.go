@@ -50,10 +50,29 @@ func Serialize(t vocab.Type) (m map[string]interface{}, e error) {
 		return serializeStatusable(t, true)
 	case IsActivityable(tn):
 		return serializeActivityable(t, true)
+	case tn == PublicKey:
+		return serializePubkey(t)
 	default:
 		// No custom serializer necessary.
 		return streams.Serialize(t)
 	}
+}
+
+// serializePubkey is a custom serializer for a bare PublicKey type.
+// Unlike the standard streams.Serialize function, it includes the
+// ActivityStreams JSON-LD namespace in the @context entry.
+func serializePubkey(t vocab.Type) (map[string]interface{}, error) {
+	data, err := streams.Serialize(t)
+	if err != nil {
+		return nil, err
+	}
+
+	data["@context"] = []string{
+		"https://www.w3.org/ns/activitystreams",
+		"https://w3id.org/security/v1",
+	}
+
+	return data, nil
 }
 
 // serializeWithOrderedItems is a custom serializer

@@ -77,6 +77,9 @@ const (
 	// See https://www.w3.org/TR/activitystreams-vocabulary/#microsyntaxes
 	// and https://www.w3.org/TR/activitystreams-vocabulary/#dfn-tag
 	TagHashtag = "Hashtag"
+
+	// PublicKey is the internal type name of a Public Key.
+	PublicKey = "PublicKey"
 )
 
 // isActivity returns whether AS type name is of an Activity (NOT IntransitiveActivity).

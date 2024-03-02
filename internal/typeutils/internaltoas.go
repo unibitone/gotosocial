@@ -360,34 +360,8 @@ func (c *Converter) AccountToAS(ctx context.Context, a *gtsmodel.Account) (vocab
 	return person, nil
 }
 
-// AccountToASMinimal converts a gts model account into an activity streams person, suitable for federation.
-//
-// The returned account will just have the Type, Username, PublicKey, and ID properties set. This is
-// suitable for serving to requesters to whom we want to give as little information as possible because
-// we don't trust them (yet).
-func (c *Converter) AccountToASMinimal(ctx context.Context, a *gtsmodel.Account) (vocab.ActivityStreamsPerson, error) {
-	person := streams.NewActivityStreamsPerson()
-
-	// id should be the activitypub URI of this user
-	// something like https://example.org/users/example_user
-	profileIDURI, err := url.Parse(a.URI)
-	if err != nil {
-		return nil, err
-	}
-	idProp := streams.NewJSONLDIdProperty()
-	idProp.SetIRI(profileIDURI)
-	person.SetJSONLDId(idProp)
-
-	// preferredUsername
-	// Used for Webfinger lookup. Must be unique on the domain, and must correspond to a Webfinger acct: URI.
-	preferredUsernameProp := streams.NewActivityStreamsPreferredUsernameProperty()
-	preferredUsernameProp.SetXMLSchemaString(a.Username)
-	person.SetActivityStreamsPreferredUsername(preferredUsernameProp)
-
-	// publicKey
-	// Required for signatures.
-	publicKeyProp := streams.NewW3IDSecurityV1PublicKeyProperty()
-
+// AccountToASPubKey returns the PublicKey representation for the given Account.
+func (c *Converter) AccountToASPubKey(ctx context.Context, a *gtsmodel.Account) (vocab.W3IDSecurityV1PublicKey, error) {
 	// create the public key
 	publicKey := streams.NewW3IDSecurityV1PublicKey()
 
@@ -401,8 +375,14 @@ func (c *Converter) AccountToASMinimal(ctx context.Context, a *gtsmodel.Account)
 	publicKey.SetJSONLDId(publicKeyIDProp)
 
 	// set owner for the public key
+	// owner id should be the activitypub URI of this user
+	// something like https://example.org/users/example_user
+	ownerURI, err := url.Parse(a.URI)
+	if err != nil {
+		return nil, err
+	}
 	publicKeyOwnerProp := streams.NewW3IDSecurityV1OwnerProperty()
-	publicKeyOwnerProp.SetIRI(profileIDURI)
+	publicKeyOwnerProp.SetIRI(ownerURI)
 	publicKey.SetW3IDSecurityV1Owner(publicKeyOwnerProp)
 
 	// set the pem key itself
@@ -418,13 +398,7 @@ func (c *Converter) AccountToASMinimal(ctx context.Context, a *gtsmodel.Account)
 	publicKeyPEMProp.Set(string(publicKeyBytes))
 	publicKey.SetW3IDSecurityV1PublicKeyPem(publicKeyPEMProp)
 
-	// append the public key to the public key property
-	publicKeyProp.AppendW3IDSecurityV1PublicKey(publicKey)
-
-	// set the public key property on the Person
-	person.SetW3IDSecurityV1PublicKey(publicKeyProp)
-
-	return person, nil
+	return publicKey, nil
 }
 
 // StatusToAS converts a gts model status into an ActivityStreams Statusable implementation, suitable for federation

@@ -48,22 +48,19 @@ func (p *Processor) UserGet(ctx context.Context, requestedUsername string, reque
 	}
 
 	if uris.IsPublicKeyPath(requestURL) {
-		// If request is on a public key path, we don't need to
-		// authenticate this request. However, we'll only serve
-		// the bare minimum user profile needed for the pubkey.
-		//
-		// TODO: https://github.com/superseriousbusiness/gotosocial/issues/1186
-		minimalPerson, err := p.converter.AccountToASMinimal(ctx, receiver)
+		// If request is on the public key path, we don't need to
+		// authenticate this request. Just serve the public key.
+		pubKey, err := p.converter.AccountToASPubKey(ctx, receiver)
 		if err != nil {
-			err := gtserror.Newf("error converting to minimal account: %w", err)
+			err := gtserror.Newf("error converting to pubKey: %w", err)
 			return nil, gtserror.NewErrorInternalError(err)
 		}
 
 		// Return early with bare minimum data.
-		return data(minimalPerson)
+		return data(pubKey)
 	}
 
-	// If the request is not on a public key path, we want to
+	// If the request is not on the public key path, we want to
 	// try to authenticate it before we serve any data, so that
 	// we can serve a more complete profile.
 	pubKeyAuth, errWithCode := p.federator.AuthenticateFederatedRequest(ctx, requestedUsername)
@@ -110,8 +107,8 @@ func (p *Processor) UserGet(ctx context.Context, requestedUsername string, reque
 	return data(person)
 }
 
-func data(requestedPerson vocab.ActivityStreamsPerson) (interface{}, gtserror.WithCode) {
-	data, err := ap.Serialize(requestedPerson)
+func data(t vocab.Type) (interface{}, gtserror.WithCode) {
+	data, err := ap.Serialize(t)
 	if err != nil {
 		err := gtserror.Newf("error serializing person: %w", err)
 		return nil, gtserror.NewErrorInternalError(err)
