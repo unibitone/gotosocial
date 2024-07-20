@@ -1224,8 +1224,8 @@ func (c *Converter) baseStatusToFrontend(
 	// convert the account into a web account instead.
 	if !web {
 		apiAuthorAccount, err = c.AccountToAPIAccountPublic(ctx, s.Account)
-	if err != nil {
-		return nil, gtserror.Newf("error converting status author: %w", err)
+		if err != nil {
+			return nil, gtserror.Newf("error converting status author: %w", err)
 		}
 	}
 
@@ -1521,7 +1521,7 @@ func (c *Converter) InstanceToAPIV1Instance(ctx context.Context, i *gtsmodel.Ins
 		instance.ThumbnailType = iAccount.AvatarMediaAttachment.File.ContentType
 		instance.ThumbnailDescription = iAccount.AvatarMediaAttachment.Description
 	} else {
-		instance.Thumbnail = config.GetProtocol() + "://" + i.Domain + "/assets/logo.png" // default thumb
+		instance.Thumbnail = config.GetProtocol() + "://" + i.Domain + "/assets/logo.webp" // default thumb
 	}
 
 	// contact account
@@ -1591,7 +1591,7 @@ func (c *Converter) InstanceToAPIV2Instance(ctx context.Context, i *gtsmodel.Ins
 		thumbnail.Description = iAccount.AvatarMediaAttachment.Description
 		thumbnail.Blurhash = iAccount.AvatarMediaAttachment.Blurhash
 	} else {
-		thumbnail.URL = config.GetProtocol() + "://" + i.Domain + "/assets/logo.png" // default thumb
+		thumbnail.URL = config.GetProtocol() + "://" + i.Domain + "/assets/logo.webp" // default thumb
 	}
 
 	instance.Thumbnail = thumbnail
