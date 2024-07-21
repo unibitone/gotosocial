@@ -19,6 +19,7 @@ package workers
 
 import (
 	"github.com/superseriousbusiness/gotosocial/internal/email"
+	"github.com/superseriousbusiness/gotosocial/internal/federation"
 	"github.com/superseriousbusiness/gotosocial/internal/filter/visibility"
 	"github.com/superseriousbusiness/gotosocial/internal/processing/stream"
 	"github.com/superseriousbusiness/gotosocial/internal/state"
@@ -37,4 +38,5 @@ type Surface struct {
 	Stream      *stream.Processor
 	Filter      *visibility.Filter
 	EmailSender email.Sender
+	Federator   *federation.Federator
 }

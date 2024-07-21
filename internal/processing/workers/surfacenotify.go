@@ -468,6 +468,20 @@ func (s *Surface) Notify(
 	// with the state-y stuff.
 	unlock()
 
+	// Try to bring notif origin account is up to date,
+	// so receiver of the notif doesn't see an empty
+	// or out-of-date avatar in the stream.
+	updatedOrigin, _, err := s.Federator.RefreshAccount(
+		ctx,
+		targetAccount.Username,
+		originAccount,
+		nil,
+		nil, // default freshness
+	)
+	if err == nil {
+		notif.OriginAccount = updatedOrigin
+	}
+
 	// Stream notification to the user.
 	filters, err := s.State.DB.GetFiltersForAccountID(ctx, targetAccount.ID)
 	if err != nil {

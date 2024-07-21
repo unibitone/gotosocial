@@ -61,6 +61,7 @@ func New(
 		Stream:      stream,
 		Filter:      filter,
 		EmailSender: emailSender,
+		Federator:   federator,
 	}
 
 	// Init shared util funcs.
