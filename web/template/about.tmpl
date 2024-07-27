@@ -42,7 +42,7 @@
     {{- end }}
 </ol>
 {{- else }}
-<p>No preferred languages have yet been set for this instance.</p> 
+<p>No preferred languages have yet been set for this instance.</p>
 {{- end }}
 {{- end -}}
 
@@ -60,7 +60,8 @@
 {{- end -}}
 
 {{- define "customCSSLimits" -}}
-<a href="https://docs.gotosocial.org/en/latest/user_guide/settings/#custom-css" target="_blank" rel="noopener noreferrer">Custom CSS</a> is&nbsp;
+<a href="https://docs.gotosocial.org/en/latest/user_guide/settings/#custom-css" target="_blank"
+    rel="noopener noreferrer">Custom CSS</a> is&nbsp;
 {{- if .instance.Configuration.Accounts.AllowCustomCSS -}}
 <b>enabled</b>
 {{- else -}}
@@ -84,7 +85,7 @@ Polls can have up to
 {{- with . }}
 <main class="about">
     <nav class="about-section" aria-labelledby="toc">
-        <h3 id="toc">Table of Contents</h3>
+        <h3 id="toc">Table of Contents TEST !</h3>
         <div class="about-section-contents">
             <ol>
                 <li><a href="#about">About {{ .instance.Title -}}</a></li>
@@ -111,7 +112,7 @@ Polls can have up to
         <div class="about-section-contents">
             {{- if .instance.ContactAccount }}
             <a href="{{- .instance.ContactAccount.URL -}}" class="account-card">
-                <img class="avatar" src="{{- .instance.ContactAccount.Avatar -}}" alt=""/>
+                <img class="avatar" src="{{- .instance.ContactAccount.Avatar -}}" alt="" />
                 <h3>
                     {{- if .instance.ContactAccount.DisplayName -}}
                     {{- emojify .instance.ContactAccount.Emojis (escape .instance.ContactAccount.DisplayName) -}}
@@ -176,8 +177,10 @@ Polls can have up to
                 by an instance admin. When an instance is domain blocked by another instance:
             </p>
             <ul>
-                <li>Any existing data from the blocked instance is deleted from the storage of the instance doing the blocking.</li>
-                <li>Interaction between the two instances is cut off in both directions; neither instance can interact with the other.</li>
+                <li>Any existing data from the blocked instance is deleted from the storage of the instance doing the
+                    blocking.</li>
+                <li>Interaction between the two instances is cut off in both directions; neither instance can interact
+                    with the other.</li>
                 <li>No new data from the blocked instance will be created on the instance that blocks it.</li>
             </ul>
             <p>

@@ -14,9 +14,9 @@
   /* Override */
   --orange2: var(--acid-green);
   --gray1: rgb(20, 21, 23);
-  --blue1: var(--acid-green-dark);
-  --blue2: var(--acid-green-light);
-  --blue3: var(--acid-green);
+  --blue2: var(--acid-green-dark);
+  --blue3: var(--acid-green-light);
+  --blue4: var(--acid-green);
 }
 
 body {

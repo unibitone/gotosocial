@@ -17,9 +17,9 @@
   /* Restyle basic colors */
   --white1: var(--eggshell);
   --white2: var(--yellow);
-  --blue1: var(--eggplant1);
-  --blue2: var(--eggplant2);
-  --blue3: var(--eggplant3);
+  --blue2: var(--eggplant1);
+  --blue3: var(--eggplant2);
+  --blue4: var(--eggplant3);
   --orange2: var(--pink);
 
   /* Basic page styling (background + foreground) */
@@ -32,7 +32,7 @@
   --profile-bg: var(--white2);
 
   /* Buttons */
-  --button-bg: var(--blue2);
+  --button-bg: var(--blue3);
   --button-fg: var(--white1);
 
   /* Statuses */
@@ -74,7 +74,7 @@ html, body {
   border: 0.08rem solid var(--orange);
 }
 .status .media .media-wrapper details .unknown-attachment .placeholder {
-  color: var(--blue2);
+  color: var(--blue3);
 }
 .status .media .media-wrapper details video.plyr-video {
   background: var(--eggshell);

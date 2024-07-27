@@ -20,10 +20,13 @@
 const skulk = require("skulk");
 const fs = require("fs");
 const path = require("path");
+const { globSync } = require("glob");
 
-let cssEntryFiles = fs.readdirSync(path.join(__dirname, "./css")).map((file) => {
-	return path.join(__dirname, "./css", file);
-});
+// let cssEntryFiles = fs.readdirSync(path.join(__dirname, "./css")).map((file) => {
+// 	return path.join(__dirname, "./css", file);
+// });
+
+let cssEntryFiles = globSync(path.join(__dirname, "./css/**/*.css"));
 
 const prodCfg = {
 	transform: [

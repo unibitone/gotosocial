@@ -17,9 +17,9 @@
   --orange2: #fad000;
 
   /* Restyle basic colors to use blurple */
-  --blue1: var(--blurple1);
-  --blue2: var(--blurple2);
-  --blue3: var(--blurple3);
+  --blue2: var(--blurple1);
+  --blue3: var(--blurple2);
+  --blue4: var(--blurple3);
 
   /* Basic page styling (background + foreground) */
   --bg: linear-gradient(var(--blurple7), black);
@@ -62,7 +62,7 @@ html, body {
   border: 0.08rem solid var(--blurple5);
 }
 .status .media .media-wrapper details .unknown-attachment .placeholder {
-  color: var(--blue2);
+  color: var(--blue3);
 }
 .status .media .media-wrapper details video.plyr-video {
   background: var(--blurple6);

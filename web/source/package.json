@@ -13,7 +13,9 @@
   "dependencies": {
     "@reduxjs/toolkit": "^1.8.6",
     "ariakit": "^2.0.0-next.41",
+    "cssnano": "^7.0.4",
     "get-by-dot": "^1.0.2",
+    "glob": "^11.0.0",
     "is-valid-domain": "^0.1.6",
     "js-file-download": "^0.4.12",
     "langs": "^2.0.0",

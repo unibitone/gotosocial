@@ -12,10 +12,10 @@
   --soft-blue: #d6f1ff;
 
   /* Override */
-  --blue1: #7f16de;
-  --blue2: #7514cc;
-  --blue3: #6b12ba;
-  --orange2: var(--blue1);
+  --blue2: #7f16de;
+  --blue3: #7514cc;
+  --blue4: #6b12ba;
+  --orange2: var(--blue2);
   --br: 0.8rem;
   --br-inner: 0.4rem; 
 
@@ -76,10 +76,10 @@ html, body {
   border-right: var(--boxshadow-border);
 }
 .profile .about-user .fields .field {
-  border-bottom: 0.1rem dashed var(--blue3);
+  border-bottom: 0.1rem dashed var(--blue4);
 }
 .profile .about-user .fields .field:first-child {
-  border-top: 0.1rem dashed var(--blue3);
+  border-top: 0.1rem dashed var(--blue4);
 }
 .profile .about-user .bio {
   border-left: var(--boxshadow-border);
@@ -96,10 +96,10 @@ html, body {
 
 /* Status media */
 .status .media .media-wrapper {
-  border: 0.08rem solid var(--blue3);
+  border: 0.08rem solid var(--blue4);
 }
 .status .media .media-wrapper details .unknown-attachment .placeholder {
-  color: var(--blue2);
+  color: var(--blue3);
 }
 .status .media .media-wrapper details video.plyr-video {
   background: var(--soft-pink-translucent);

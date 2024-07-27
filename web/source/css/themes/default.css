@@ -37,29 +37,25 @@ $gray5: #4d4e56;
 $gray6: #575861;
 $gray7: #5d5e67;
 $gray8: #696a75;
+$gray5-trans: rgba(77, 78, 86, 0.62);
 
 $orange1: #fd6a00; /* Used for non-text accent colors, can be used as background: $gray1 for text color (contrast 4.6)*/
 $orange2: #ff853e; /* hover/selected accent to $orange1, can be used with $gray1 (5.7), $gray2 (4.6) */
 
+$blue0: #00336B; /* darkest blue, can be used for links in error alerts, on $error2 (6.00) */
 $blue1: #3a9fde; /* darker blue for smaller elements (borders), can only be used with $gray1 (4.7) */
 $blue2: #66befe; /* all-round accent color, can be used with $gray1 (6.8), $gray2 (5.5), $gray3 (4.9), $gray4 (4.5) */
 $blue3: #89caff; /* hover/selected accent to $blue2, can be used with $gray1 (7.9), $gray2 (6.3), $gray3 (5.6), $gray4 (5.2), $gray5 (4.7) */
+$blue4: #b3ddff; /* used as background for info alerts */
 
-$error1: #860000; /* Error border/foreground text, can be used with $error2 (5.0), $white1 (10), $white2 (5.1) */
-$error2: #ff9796; /* Error background text, can be used with $error1 (5.0), $gray1 (6.6), $gray2 (5.3), $gray3 (4.8) */
-$error3: #dd2c2c; /* Error button background text, can be used with $white1 (4.51) */
-$error-link: #01318C; /* Error link text, can be used with $error2 (5.56) */
+$red1: #860000; /* Error border/foreground text, can be used with $error2 (5.0), $white1 (10), $white2 (5.1) */
+$red2: #dd2c2c; /* Error button background text, can be used with $white1 (4.51) */
+$red3: #ff9796; /* Error background text, can be used with $error1 (5.0), $gray1 (6.6), $gray2 (5.3), $gray3 (4.8) */
 
 $green1: #94E749; /* Green for positive/confirmation, similar contrast (luminance) as $blue2 */
 
-$info-fg: $gray1;
-$info-bg: #b3ddff;
-$info-link: $error-link;
-
 $fg: $white1;
 $bg: $gray1;
-
-$bg-trans: rgba(77, 78, 86, 0.62);
 
 $bg-accent: $gray5;
 $fg-accent: $blue3;
@@ -115,8 +111,13 @@ $settings-nav-bg-active: $blue3;
 $settings-nav-border-active: $info-bg;
 $settings-nav-fg-active: $gray2;
 
-$error-fg: $error1;
-$error-bg: $error2;
+$info-fg: $gray1;
+$info-bg: $blue4;
+$info-link: $blue0;
+
+$error-fg: $red1;
+$error-bg: $red3;
+$error-link: $blue0;
 
 $list-entry-bg: $gray2;
 $list-entry-alternate-bg: $gray3;

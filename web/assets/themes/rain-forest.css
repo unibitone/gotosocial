@@ -13,7 +13,7 @@
 --dgreen2: #196C41;
 --dgreen3: #027C68;
 --dgreen4: #009933;
---dblue1: #141E46;   /* very dark blue */
+--dblue2: #141E46;   /* very dark blue */
 --typecolor: #F8F4EC;
 --linkcolor: #c0f0c0; /* very soft lime green */
 --sunny: #FCDC2A;
@@ -25,10 +25,10 @@
 --fg-reduced: #BBEBFF;
 
   /* Restyle basic colors  */
-  --blue1: var(--dgreen2);
-  --blue2: var(--lesssunny);
-  --blue3: var(--linkcolor);
-  --bg-accent: var(--dblue1);
+  --blue2: var(--dgreen2);
+  --blue3: var(--lesssunny);
+  --blue4: var(--linkcolor);
+  --bg-accent: var(--dblue2);
   --orange2: var(--sunny);
   --profile-bg: var(--dgreen2);
   /* dark blues */
@@ -41,7 +41,7 @@
   --status-focus-info-bg: var(--dgreen3);
     /* «show more» button */
   --button-bg: var(--lesssunny);
-  --button-fg: var(--dblue1);
+  --button-fg: var(--dblue2);
 
 
 
@@ -54,7 +54,7 @@
 
 html, body {
   /* background */
-        --bg: linear-gradient(180deg, var(--dgreen2) 0%, var(--dgreen1) 40%, var(--dblue1) 100%);
+        --bg: linear-gradient(180deg, var(--dgreen2) 0%, var(--dgreen1) 40%, var(--dblue2) 100%);
 
   /* browser's scrollbar, papaya and green */
         scrollbar-color: var(--lesssunny) var(--dgreen2);
