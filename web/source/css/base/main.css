@@ -1,0 +1,53 @@
+/*
+	Standard border radius
+	for nice squircles.
+*/
+$br: 0.4rem;
+
+/*
+	Border radius for items that
+	are framed/bordered inside
+	something with $br, eg avatar,
+	header img, etc.
+*/
+$br-inner: 0.2rem; 
+
+/*
+	Fork-Awesome 'fa-fw' fixed icon width;
+	keep in sync with https://github.com/ForkAwesome/Fork-Awesome/blob/a99579ae3e735ee70e51ed62dfcee3172b5b2db7/css/fork-awesome.css#L50
+*/
+$fa-fw: 1.28571429em;
+
+html, body {
+	padding: 0;
+	margin: 0;
+	background: $bg;
+	color: $fg;
+	font-family: "Noto Sans", sans-serif;
+	scrollbar-color: $orange1 $gray3;
+}
+
+body {
+	line-height: 1.5em;
+	position: relative;
+}
+
+a {
+	color: $link-fg;
+}
+
+/*
+	Normalize margins of first and last children.
+	We generally don't want to open a paragraph or
+	paragraph-like element with a top margin or
+	close it with a bottom margin.
+*/
+main {
+	p:first-child, ol:first-child, ul:first-child {
+		margin-top: 0;
+	}
+
+	p:last-child, ol:last-child, ul:last-child {
+		margin-bottom: 0;
+	}
+}

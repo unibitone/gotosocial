@@ -37,7 +37,6 @@ $gray5: #4d4e56;
 $gray6: #575861;
 $gray7: #5d5e67;
 $gray8: #696a75;
-$gray5-trans: rgba(77, 78, 86, 0.62);
 
 $orange1: #fd6a00; /* Used for non-text accent colors, can be used as background: $gray1 for text color (contrast 4.6)*/
 $orange2: #ff853e; /* hover/selected accent to $orange1, can be used with $gray1 (5.7), $gray2 (4.6) */
@@ -54,6 +53,12 @@ $red3: #ff9796; /* Error background text, can be used with $error1 (5.0), $gray1
 
 $green1: #94E749; /* Green for positive/confirmation, similar contrast (luminance) as $blue2 */
 
+$boxshadow: 0 0.4rem 1rem -0.1rem rgba(0,0,0,0.15);
+$boxshadow-border: 0.08rem solid $gray1;
+
+/* Color variables as used in a specific location */
+
+/* Base */
 $fg: $white1;
 $bg: $gray1;
 
@@ -62,23 +67,16 @@ $fg-accent: $blue3;
 $fg-reduced: $white2;
 $border-accent: $orange2;
 
-/* Color variables as used in a specific location */
-
 $link-fg: $fg-accent;
+
+/* Profile */
+$profile-bg: $gray4;
+$avatar-border: $orange2;
 
 $role-admin: $orange2;
 $role-mod: $blue2;
 
-$profile-bg: $gray4;
-
-$button-bg: $blue2;
-$button-fg: $gray1;
-$button-hover-bg: $blue3;
-
-$button-danger-bg: $error3;
-$button-danger-fg: $white1;
-$button-danger-hover-bg: $error2;
-
+/* Status */
 $status-bg: $gray3;
 $status-info-bg: $gray2;
 
@@ -90,11 +88,7 @@ $no-img-desc-fg: $gray1;
 
 $bg-sensitive: $gray1;
 
-$boxshadow: 0 0.4rem 1rem -0.1rem rgba(0,0,0,0.15);
-$boxshadow-border: 0.08rem solid $gray1;
-
-$avatar-border: $orange2;
-
+/* Form inputs */
 $input-bg: $gray4;
 $input-disabled-bg: $gray2;
 $input-border: $blue1;
@@ -111,6 +105,16 @@ $settings-nav-bg-active: $blue3;
 $settings-nav-border-active: $info-bg;
 $settings-nav-fg-active: $gray2;
 
+/* Buttons */
+$button-bg: $blue2;
+$button-fg: $gray1;
+$button-hover-bg: $blue3;
+
+$button-danger-bg: $error3;
+$button-danger-fg: $white1;
+$button-danger-hover-bg: $error2;
+
+/* Alerts */
 $info-fg: $gray1;
 $info-bg: $blue4;
 $info-link: $blue0;
