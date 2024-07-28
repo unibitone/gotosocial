@@ -22,6 +22,7 @@ const path = require("path");
 const { globSync } = require("glob");
 
 const cssDir = path.join(__dirname, "./css");
+const cssFiles = globSync(cssDir + "/**/*.css", { ignore: cssDir + "/themes/**" });
 const cssThemes = globSync(cssDir + "/themes/**/*.css");
 
 const prodCfg = {
@@ -95,7 +96,7 @@ skulk({
 			}]]
 		},
 		css: {
-			entryFiles: cssDir + "/main.css",
+			entryFiles: cssFiles,
 			outputFile: "_discard",
 			presets: [["postcss", {
 				output: "style.css"

@@ -16,16 +16,3 @@
 	You should have received a copy of the GNU Affero General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-@import "modern-normalize/modern-normalize.css"; /* needs to be the first import */
-
-@import "./base/fonts.css";
-@import "./base/main.css";
-
-@import "./components/account-card.css";
-@import "./components/emoji.css";
-@import "./components/forms.css";
-@import "./components/lists.css";
-@import "./components/utility.css";
-
-@import "./vendor/prism.css";
