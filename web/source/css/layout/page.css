@@ -81,6 +81,47 @@
 .page-content {
 	grid-column: 2;
 	align-self: start;
+
+	&.with-sidebar {
+		grid-column: 1 / span 2;
+		display: grid;
+		grid-template-columns: 1fr minmax(auto, 50rem);
+		grid-template-columns: 1fr min(92%, 50rem);
+
+		.sidebar {
+			align-self: start;
+			position: sticky;
+			top: 0;
+			padding: 0 1.5rem;
+
+			h2 {
+				margin-top: 1.5rem;
+			}
+		}
+	}
+}
+
+@media screen and (max-width: 80rem) {
+	.page-content.with-sidebar {
+		grid-column: 2;
+		display: flex;
+		flex-direction: column;
+		background: $bg-accent;
+		box-shadow: $boxshadow;
+		border: $boxshadow-border;
+		border-radius: $br;
+
+		.sidebar {
+			position: static;
+		}
+
+		main.single-page {
+			background: initial;
+			box-shadow: initial;
+			border: initial;
+			border-radius: initial;
+		}
+	}
 }
 
 .page-footer {

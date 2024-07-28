@@ -27,6 +27,12 @@ html, body {
 	scrollbar-color: $orange1 $gray3;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+	html {
+		scroll-behavior: smooth;
+	}
+}
+
 body {
 	line-height: 1.5em;
 	position: relative;
