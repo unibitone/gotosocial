@@ -1,22 +1,3 @@
-/*
-	GoToSocial
-	Copyright (C) GoToSocial Authors admin@gotosocial.org
-	SPDX-License-Identifier: AGPL-3.0-or-later
-
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU Affero General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU Affero General Public License for more details.
-
-	You should have received a copy of the GNU Affero General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 .page {
 	display: grid;
 	min-height: 100vh;
@@ -28,11 +9,6 @@
 
 .page-header, .page-footer {
 	grid-column: 1 / span 3;
-}
-
-.page-content {
-	grid-column: 2;
-	align-self: start;
 }
 
 .page-header {
@@ -87,8 +63,28 @@
 	}
 }
 
+.page-header.large {
+	margin: 2rem 0;
+	a {
+		img, picture {
+			max-height: 6rem;
+		}
+
+		h1 {
+			font-size: 2rem;
+			line-height: 2rem;
+		}
+	}
+}
+
+.page-content {
+	grid-column: 2;
+	align-self: start;
+}
+
 .page-footer {
 	align-self: end;
+	margin-top: 3rem;
 
 	nav ul {
 		display: flex;
