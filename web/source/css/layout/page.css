@@ -89,10 +89,16 @@
 		grid-template-columns: 1fr min(92%, 50rem);
 
 		.sidebar {
+			display: inline-block;
 			align-self: start;
+			justify-self: end;
 			position: sticky;
 			top: 0;
 			padding: 0 1.5rem;
+
+			ol {
+				margin-top: 0;
+			}
 
 			h2 {
 				margin-top: 1.5rem;
