@@ -17,14 +17,10 @@
 	<link rel="icon" href="http://localhost:8080/assets/logo.webp" type="image/webp">
 	<link rel="apple-touch-icon" href="http://localhost:8080/assets/logo.webp" type="image/webp">
 	<link rel="apple-touch-startup-image" href="http://localhost:8080/assets/logo.webp" type="image/webp">
-	<link rel="preload" href="/assets/dist/_colors.css" as="style">
-	<link rel="preload" href="/assets/dist/base.css" as="style">
-	<link rel="preload" href="/assets/dist/page.css" as="style">
-	<link rel="preload" href="/assets/dist/about.css" as="style">
-	<link rel="stylesheet" href="/assets/dist/_colors.css">
-	<link rel="stylesheet" href="/assets/dist/base.css">
-	<link rel="stylesheet" href="/assets/dist/page.css">
-	<link rel="stylesheet" href="/assets/dist/about.css">
+	<link rel="preload" href="/assets/fonts/noto-sans-v27-latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="preload" href="/assets/fonts/noto-sans-v27-latin-700.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="stylesheet" href="/assets/dist/default.css">
+	<link rel="stylesheet" href="/assets/dist/style.css">
 	<title>GoToSocial Testrig Instance - GoToSocial</title>
 </head>
 
@@ -41,10 +37,10 @@
 			<span class="count">2</span> other instances</aside>
 	</header>
 	<div class="page-content">
-		<main class="about">
-			<nav class="about-section" aria-labelledby="toc">
-				<h3 id="toc">Table of Contents</h3>
-				<div class="about-section-contents">
+		<main class="single-page">
+			<nav aria-labelledby="toc">
+				<h2 id="toc">Table of Contents</h2>
+				<div>
 					<ol>
 						<li><a href="#about">About GoToSocial Testrig Instance</a></li>
 						<li><a href="#contact">Contact</a></li>
@@ -57,9 +53,9 @@
 					</ol>
 				</div>
 			</nav>
-			<section class="about-section" role="region" aria-labelledby="about">
-				<h3 id="about">About GoToSocial Testrig Instance</h3>
-				<div class="about-section-contents">
+			<section role="region" aria-labelledby="about">
+				<h2 id="about">About GoToSocial Testrig Instance</h2>
+				<div>
 					<p>Here's a fuller description of the GoToSocial testrig instance.</p>
 					<p>This instance is for testing purposes only. It doesn't federate at all. Go check out <a
 							href="https://github.com/superseriousbusiness/gotosocial/tree/main/testrig"
@@ -83,20 +79,20 @@
 					<p>If you need to edit the models for the testrig, you can do so at <code>internal/testmodels.go</code>.</p>
 				</div>
 			</section>
-			<section class="about-section" role="region" aria-labelledby="contact">
-				<h3 id="contact">Admin Contact</h3>
-				<div class="about-section-contents">
+			<section role="region" aria-labelledby="contact">
+				<h2 id="contact">Admin Contact</h2>
+				<div>
 					<a href="http://localhost:8080/@admin" class="account-card">
 						<img class="avatar" src="http://localhost:8080/assets/default_avatars/GoToSocial_icon4.webp" alt="" />
-						<h3>admin</h3>
+						<h2>admin</h2>
 						<span>@admin</span>
 					</a>
 					<p>Email: <a href="mailto:admin@example.org">admin@example.org</a></p>
 				</div>
 			</section>
-			<section class="about-section" role="region" aria-labelledby="features">
-				<h3 id="features">Instance Features</h3>
-				<div class="about-section-contents">
+			<section role="region" aria-labelledby="features">
+				<h2 id="features">Instance Features</h2>
+				<div>
 					<ul>
 						<li>Statuses can contain up to
 							<b>5000 characters</b>, and
@@ -109,9 +105,9 @@
 					</ul>
 				</div>
 			</section>
-			<section class="about-section" role="region" aria-labelledby="languages">
-				<h3 id="languages">Languages</h3>
-				<div class="about-section-contents">
+			<section role="region" aria-labelledby="languages">
+				<h2 id="languages">Languages</h2>
+				<div>
 					<p>This instance prefers the following languages:</p>
 					<ol>
 						<li>Nederlands</li>
@@ -119,9 +115,9 @@
 					</ol>
 				</div>
 			</section>
-			<section class="about-section" role="region" aria-labelledby="signup">
-				<h3 id="signup">Register an Account on GoToSocial Testrig Instance</h3>
-				<div class="about-section-contents">
+			<section role="region" aria-labelledby="signup">
+				<h2 id="signup">Register an Account on GoToSocial Testrig Instance</h2>
+				<div>
 					<p>New account registration is currently&nbsp;<b>open</b>.</p>
 					<p>To register a new account, please first read the <a href="/about#rules">rules</a> and <a
 							href="/about#terms">terms</a>.</p>
@@ -129,9 +125,9 @@
 					<p>Manual admin approval is <b>required</b> for new accounts.</p>
 				</div>
 			</section>
-			<section class="about-section" role="region" aria-labelledby="rules">
-				<h3 id="rules">Instance Rules</h3>
-				<div class="about-section-contents">
+			<section role="region" aria-labelledby="rules">
+				<h2 id="rules">Instance Rules</h2>
+				<div>
 					<p>This instance has the following rules:</p>
 					<ol>
 						<li>Be gay</li>
@@ -139,9 +135,9 @@
 					</ol>
 				</div>
 			</section>
-			<section class="about-section" role="region" aria-labelledby="terms">
-				<h3 id="terms">Terms and Conditions</h3>
-				<div class="about-section-contents">
+			<section role="region" aria-labelledby="terms">
+				<h2 id="terms">Terms and Conditions</h2>
+				<div>
 					<p>This is where a list of terms and conditions might go.</p>
 					<p>For example:</p>
 					<p>If you want to sign up on this instance, you oughta know that we:</p>
@@ -151,9 +147,9 @@
 					</ol>
 				</div>
 			</section>
-			<section class="about-section" role="region" aria-labelledby="moderated-servers">
-				<h3 id="moderated-servers">Moderated servers</h3>
-				<div class="about-section-contents">
+			<section role="region" aria-labelledby="moderated-servers">
+				<h2 id="moderated-servers">Moderated servers</h2>
+				<div>
 					<p>
 						ActivityPub instances federate with other instances by exchanging data with them over the network.
 						Exchanged data includes things like accounts, statuses, likes, boosts, and media attachments.
