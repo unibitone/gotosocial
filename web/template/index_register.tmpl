@@ -27,9 +27,9 @@ New account registration is currently&nbsp;
 {{- end -}}
 
 {{- with . }}
-<section class="about-section" role="region" aria-labelledby="signup">
+<section role="region" aria-labelledby="signup">
     <h2 id="signup">Register an Account on {{ .instance.Title -}}</h2>
-    <div class="about-section-contents">
+    <div>
         <p>{{- template "registrationLimits" . -}}</p>
         {{- if .instance.Registrations }}
         <p>To register a new account, please first read the <a href="/about#rules">rules</a> and <a
