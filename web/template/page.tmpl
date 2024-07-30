@@ -74,11 +74,11 @@ image/webp
     <title>{{- template "instanceTitle" . -}}</title>
 </head>
 
-<body class="page">
+<body class="page{{if .pageType}} {{.pageType}}{{end}}">
     <header class="page-header{{if .largeHeader}} large{{end}}">
         {{- include "page_header.tmpl" . | indent 3 }}
     </header>
-    <div class="page-content{{if .pageType}} {{.pageType}}{{end}}">
+    <div class="page-content">
         {{- include .pageContent . | indent 3 | outdentPre }}
     </div>
     <footer class="page-footer">

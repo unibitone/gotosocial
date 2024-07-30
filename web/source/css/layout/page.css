@@ -86,34 +86,34 @@
 .page-content {
 	grid-column: 2;
 	align-self: start;
+}
 
-	&.with-sidebar {
-		grid-column: 1 / span 2;
-		display: grid;
-		grid-template-columns: 1fr minmax(auto, 50rem);
-		grid-template-columns: 1fr min(92%, 50rem);
+.page.with-sidebar .page-content {
+	grid-column: 1 / span 2;
+	display: grid;
+	grid-template-columns: 1fr minmax(auto, 50rem);
+	grid-template-columns: 1fr min(92%, 50rem);
 
-		.sidebar {
-			display: inline-block;
-			align-self: start;
-			justify-self: end;
-			position: sticky;
-			top: 0;
-			padding: 0 1.5rem;
+	.sidebar {
+		display: inline-block;
+		align-self: start;
+		justify-self: end;
+		position: sticky;
+		top: 0;
+		padding: 0 1.5rem;
 
-			ol {
-				margin-top: 0;
-			}
+		ol {
+			margin-top: 0;
+		}
 
-			h2 {
-				margin-top: 1.5rem;
-			}
+		h2 {
+			margin-top: 1.5rem;
 		}
 	}
 }
 
 @media screen and (max-width: 80rem) {
-	.page-content.with-sidebar {
+	.page.with-sidebar .page-content {
 		grid-column: 2;
 		display: flex;
 		flex-direction: column;
