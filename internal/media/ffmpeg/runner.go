@@ -19,8 +19,6 @@ package ffmpeg
 
 import (
 	"context"
-
-	"github.com/tetratelabs/wazero"
 )
 
 // runner simply abstracts away the complexities
@@ -50,9 +48,12 @@ func (r *runner) Init(n int) {
 	}
 }
 
-// Run will attempt to pass the given compiled WebAssembly module with args to run(), waiting on
-// the receiving runner until a free slot is available to run an instance, (if a limit is enabled).
-func (r *runner) Run(ctx context.Context, cmod wazero.CompiledModule, args Args) (uint32, error) {
+// Run will instantiate (run) the given
+// function once a free slot is available.
+func (r *runner) Run(
+	ctx context.Context,
+	run func() (uint32, error),
+) (uint32, error) {
 	select {
 	// Context canceled.
 	case <-ctx.Done():
@@ -65,6 +66,6 @@ func (r *runner) Run(ctx context.Context, cmod wazero.CompiledModule, args Args)
 	// Release slot back to pool on end.
 	defer func() { r.pool <- struct{}{} }()
 
-	// Pass to main module runner.
-	return run(ctx, cmod, args)
+	// Run provided function.
+	return run()
 }
