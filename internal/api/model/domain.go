@@ -63,6 +63,50 @@ type DomainPermission struct {
 	CreatedAt string `json:"created_at,omitempty"`
 }
 
+// DomainPermissionSubscription represents an auto-refreshing subscription to a list of domain permissions (allows, blocks).
+//
+// swagger:model domainPermission
+type DomainPermissionSubscription struct {
+	// The ID of the domain permission subscription.
+	// example: 01FBW21XJA09XYX51KV5JVBW0F
+	// readonly: true
+	ID string `json:"id"`
+	// The type of domain permission subscription (allow, block).
+	// example: block
+	PermissionType string `json:"permission_type"`
+	// If true, domain permissions arising from this subscription will be created as drafts that must be approved by a moderator to take effect. If false, domain permissions from this subscription will come into force immediately.
+	// example: true
+	AsDraft bool `json:"as_draft"`
+	// ID of the account that created this subscription.
+	// example: 01FBW21XJA09XYX51KV5JVBW0F
+	// readonly: true
+	CreatedByAccountID string `json:"created_by_account_id"`
+	// MIME content type to expect at URI.
+	// example: text/csv
+	ContentType string `json:"content_type"`
+	// URI to call in order to fetch the permissions list.
+	// example: https://www.example.org/blocklists/list1.csv
+	URI string `json:"uri"`
+	// (Optional) username to set for basic auth when doing a fetch of URI.
+	// example: admin123
+	FetchUsername string `json:"fetch_username"`
+	// (Optional) password to set for basic auth when doing a fetch of URI.
+	// example: admin123
+	FetchPassword string `json:"fetch_password"`
+	// Time at which the most recent fetch was attempted (ISO 8601 Datetime).
+	// example: 2021-07-30T09:20:25+00:00
+	// readonly: true
+	FetchedAt string `json:"fetched_at"`
+	// If most recent fetch attempt failed, this field will contain an error message related to the fetch attempt.
+	// example: Oopsie doopsie, we made a fucky wucky.
+	// readonly: true
+	Error string `json:"error"`
+	// Count of domain permission entries discovered at URI.
+	// example: 53
+	// readonly: true
+	Count uint64 `json:"count"`
+}
+
 // DomainPermissionRequest is the form submitted as a POST to create a new domain permission entry (allow/block).
 //
 // swagger:ignore

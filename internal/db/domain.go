@@ -22,6 +22,7 @@ import (
 	"net/url"
 
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
+	"github.com/superseriousbusiness/gotosocial/internal/paging"
 )
 
 // Domain contains DB functions related to domains and domain blocks.
@@ -78,4 +79,48 @@ type Domain interface {
 	// AreURIsBlocked calls IsURIBlocked for each URI.
 	// Will return true if even one of the given URIs is blocked.
 	AreURIsBlocked(ctx context.Context, uris []*url.URL) (bool, error)
+
+	/*
+		Domain permission draft stuff.
+	*/
+
+	// GetDomainPermissionDraftByID gets one DomainPermissionDraft with the given ID.
+	GetDomainPermissionDraftByID(ctx context.Context, id string) (*gtsmodel.DomainPermissionDraft, error)
+
+	// GetDomainPermissionDrafts returns a page of
+	// DomainPermissionDrafts using the given parameters.
+	GetDomainPermissionDrafts(
+		ctx context.Context,
+		permType *gtsmodel.DomainPermissionType,
+		permSubID string,
+		domain string,
+		page *paging.Page,
+	) ([]*gtsmodel.DomainPermissionDraft, error)
+
+	// PutDomainPermissionDraft stores one DomainPermissionDraft.
+	PutDomainPermissionDraft(ctx context.Context, permDraft *gtsmodel.DomainPermissionDraft) error
+
+	// DeleteDomainPermissionDraft deletes one DomainPermissionDraft with the given id.
+	DeleteDomainPermissionDraft(ctx context.Context, id string) error
+
+	/*
+		Domain permission subscription stuff.
+	*/
+
+	// GetDomainPermissionSubscriptionByID gets one DomainPermissionSubscription with the given ID.
+	GetDomainPermissionSubscriptionByID(ctx context.Context, id string) (*gtsmodel.DomainPermissionSubscription, error)
+
+	// GetDomainPermissionSubscriptions returns a page of
+	// DomainPermissionSubscriptions using the given parameters.
+	GetDomainPermissionSubscriptions(
+		ctx context.Context,
+		permType *gtsmodel.DomainPermissionType,
+		page *paging.Page,
+	) ([]*gtsmodel.DomainPermissionSubscription, error)
+
+	// PutDomainPermissionSubscription stores one DomainPermissionSubscription.
+	PutDomainPermissionSubscription(ctx context.Context, permSub *gtsmodel.DomainPermissionSubscription) error
+
+	// DeleteDomainPermissionSubscription deletes one DomainPermissionSubscription with the given id.
+	DeleteDomainPermissionSubscription(ctx context.Context, id string) error
 }

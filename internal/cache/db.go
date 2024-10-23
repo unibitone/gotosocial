@@ -67,6 +67,12 @@ type DBCaches struct {
 	// DomainBlock provides access to the domain block database cache.
 	DomainBlock *domain.Cache
 
+	// DomainPermissionDraft provides access to the domain permission draft database cache.
+	DomainPermissionDraft StructCache[*gtsmodel.DomainPermissionDraft]
+
+	// DomainPermissionSubscription provides access to the domain permission subscription database cache.
+	DomainPermissionSubscription StructCache[*gtsmodel.DomainPermissionSubscription]
+
 	// Emoji provides access to the gtsmodel Emoji database cache.
 	Emoji StructCache[*gtsmodel.Emoji]
 
@@ -546,6 +552,69 @@ func (c *Caches) initDomainAllow() {
 
 func (c *Caches) initDomainBlock() {
 	c.DB.DomainBlock = new(domain.Cache)
+}
+
+func (c *Caches) initDomainPermissionDraft() {
+	// Calculate maximum cache size.
+	cap := calculateResultCacheMax(
+		sizeofDomainPermissionDraft(), // model in-mem size.
+		config.GetCacheDomainPermissionDraftMemRation(),
+	)
+
+	log.Infof(nil, "cache size = %d", cap)
+
+	copyF := func(d1 *gtsmodel.DomainPermissionDraft) *gtsmodel.DomainPermissionDraft {
+		d2 := new(gtsmodel.DomainPermissionDraft)
+		*d2 = *d1
+
+		// Don't include ptr fields that
+		// will be populated separately.
+		d2.CreatedByAccount = nil
+
+		return d2
+	}
+
+	c.DB.DomainPermissionDraft.Init(structr.CacheConfig[*gtsmodel.DomainPermissionDraft]{
+		Indices: []structr.IndexConfig{
+			{Fields: "ID"},
+			{Fields: "Domain", Multiple: true},
+			{Fields: "SubscriptionID", Multiple: true},
+		},
+		MaxSize:   cap,
+		IgnoreErr: ignoreErrors,
+		Copy:      copyF,
+	})
+}
+
+func (c *Caches) initDomainPermissionSubscription() {
+	// Calculate maximum cache size.
+	cap := calculateResultCacheMax(
+		sizeofDomainPermissionSubscription(), // model in-mem size.
+		config.GetCacheDomainPermissionSubscriptionMemRation(),
+	)
+
+	log.Infof(nil, "cache size = %d", cap)
+
+	copyF := func(d1 *gtsmodel.DomainPermissionSubscription) *gtsmodel.DomainPermissionSubscription {
+		d2 := new(gtsmodel.DomainPermissionSubscription)
+		*d2 = *d1
+
+		// Don't include ptr fields that
+		// will be populated separately.
+		d2.CreatedByAccount = nil
+
+		return d2
+	}
+
+	c.DB.DomainPermissionSubscription.Init(structr.CacheConfig[*gtsmodel.DomainPermissionSubscription]{
+		Indices: []structr.IndexConfig{
+			{Fields: "ID"},
+			{Fields: "URI"},
+		},
+		MaxSize:   cap,
+		IgnoreErr: ignoreErrors,
+		Copy:      copyF,
+	})
 }
 
 func (c *Caches) initEmoji() {
