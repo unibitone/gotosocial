@@ -29,7 +29,7 @@ log-level: "info"
 # when you're trying to track an issue down.
 # Options: [true, false]
 # Default: false
-log-db-queries: false
+log-db-queries: true
 
 # Bool. Include the client IP in the emitted log lines
 # Options: [true, false]
@@ -45,17 +45,17 @@ log-client-ip: true
 #
 # Examples: ["2006-01-02T15:04:05.000Z07:00", ""]
 # Default: "02/01/2006 15:04:05.000"
-log-timestamp-format: "02/01/2006 15:04:05.000"
+log-timestamp-format: "2006-01-02 15:04:05.000"
 
 # String. Application name to use internally.
 # Examples: ["My Application","gotosocial"]
 # Default: "gotosocial"
-application-name: "gotosocial"
+application-name: "mysocial"
 
 # String. The user that will be shown instead of the landing page. if no user is set, the landing page will be shown.
 # Examples: "admin"
 # Default: ""
-landing-page-user: ""
+landing-page-user: "admin"
 
 # String. Hostname that this server will be reachable at. Defaults to localhost for local testing,
 # but you should *definitely* change this when running for real, or your server won't work at all.
@@ -102,7 +102,7 @@ account-domain: ""
 #
 # Options: ["http","https"]
 # Default: "https"
-protocol: "https"
+protocol: "http"
 
 # String. Address to bind the GoToSocial server to.
 # This can be an IPv4 address or an IPv6 address (surrounded in square brackets), or a hostname.
@@ -323,7 +323,7 @@ instance-languages: []
 #
 # Options: ["blocklist", "allowlist"]
 # Default: "blocklist"
-instance-federation-mode: "blocklist"
+instance-federation-mode: "allowlist"
 
 # Bool. Enable spam filtering heuristics for messages entering your instance
 # via the federation API. Regardless of what you set here, basic checks
