@@ -110,13 +110,14 @@ func (p *Processor) Create(
 	}
 
 	user, err := p.state.DB.NewSignup(ctx, gtsmodel.NewSignup{
-		Username: form.Username,
-		Email:    form.Email,
-		Password: form.Password,
-		Reason:   text.SanitizeToPlaintext(reason),
-		SignUpIP: form.IP,
-		Locale:   form.Locale,
-		AppID:    app.ID,
+		Username:    form.Username,
+		Email:       form.Email,
+		Password:    form.Password,
+		Reason:      text.SanitizeToPlaintext(reason),
+		SignUpIP:    form.IP,
+		Locale:      form.Locale,
+		AppID:       app.ID,
+		PreApproved: true,
 	})
 	if err != nil {
 		err := fmt.Errorf("db error creating new signup: %w", err)

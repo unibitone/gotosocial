@@ -66,6 +66,8 @@ func (m *Module) signupGETHandler(c *gin.Context) {
 	apiutil.TemplateWebPage(c, page)
 }
 
+// /signup
+// 账号注册接口
 func (m *Module) signupPOSTHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 

@@ -1,0 +1,1 @@
+./gotosocial --config-path config.yaml server start

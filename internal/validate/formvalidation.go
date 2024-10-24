@@ -406,9 +406,9 @@ func CreateAccount(form *apimodel.AccountCreateRequest) error {
 		return err
 	}
 
-	if err := Password(form.Password); err != nil {
-		return err
-	}
+	// if err := Password(form.Password); err != nil {
+	// 	return err
+	// }
 
 	if !form.Agreement {
 		return errors.New("agreement to terms and conditions not given")

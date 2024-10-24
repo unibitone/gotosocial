@@ -142,7 +142,7 @@ trusted-proxies:
 # String. Database type.
 # Options: ["postgres","sqlite"]
 # Default: "postgres"
-db-type: "postgres"
+db-type: "sqlite"
 
 # String. Database address or parameters.
 #
@@ -157,7 +157,7 @@ db-type: "postgres"
 #
 # Examples: ["localhost","my.db.host","127.0.0.1","192.111.39.110",":memory:", "sqlite.db"]
 # Default: ""
-db-address: ""
+db-address: "/Users/JinChan/WorkHub/gotosocial/sqlite.db"
 
 # Int. Port for database connection.
 # Examples: [5432, 1234, 6969]
@@ -426,7 +426,7 @@ instance-inject-mastodon-version: false
 #
 # Options: [true, false]
 # Default: false
-accounts-registration-open: false
+accounts-registration-open: true
 
 # Bool. Are sign up requests required to submit a reason for the request (eg., an explanation of why they want to join the instance)?
 # Options: [true, false]
@@ -447,7 +447,7 @@ accounts-reason-required: true
 #
 # Options: [true, false]
 # Default: false
-accounts-allow-custom-css: false
+accounts-allow-custom-css: true
 
 # Int. If accounts-allow-custom-css is true, this is the permitted length in characters for
 # CSS uploaded by accounts on this instance. No effect if accounts-allow-custom-css is false.
@@ -575,7 +575,7 @@ storage-backend: "local"
 # Only required when running with the local storage backend.
 # Examples: ["/home/gotosocial/storage", "/opt/gotosocial/datastorage"]
 # Default: "/gotosocial/storage"
-storage-local-base-path: "/gotosocial/storage"
+storage-local-base-path: "/Users/JinChan/WorkHub/gotosocial/storage"
 
 # String. API endpoint of the S3 compatible service.
 # Only required when running with the s3 storage backend.

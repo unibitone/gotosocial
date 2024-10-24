@@ -181,6 +181,7 @@ var Confirm action.GTSAction = func(ctx context.Context) error {
 		return err
 	}
 
+	// admin account Confirm 确定操作
 	user.Approved = func() *bool { a := true; return &a }()
 	user.Email = user.UnconfirmedEmail
 	user.ConfirmedAt = time.Now()
