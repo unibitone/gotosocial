@@ -26,7 +26,6 @@ import (
 	"github.com/superseriousbusiness/gotosocial/internal/config"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 	"github.com/superseriousbusiness/gotosocial/internal/regexes"
-	pwv "github.com/wagslane/go-password-validator"
 	"golang.org/x/text/language"
 )
 
@@ -61,17 +60,17 @@ func Password(password string) error {
 		)
 	}
 
-	if err := pwv.Validate(password, minimumPasswordEntropy); err != nil {
-		// Calculate the percentage of our desired entropy this password fulfils.
-		entropyPercent := int(100 * pwv.GetEntropy(password) / minimumPasswordEntropy)
+	// if err := pwv.Validate(password, minimumPasswordEntropy); err != nil {
+	// 	// Calculate the percentage of our desired entropy this password fulfils.
+	// 	entropyPercent := int(100 * pwv.GetEntropy(password) / minimumPasswordEntropy)
 
-		// Replace the first 17 bytes (`insecure password`)
-		// of the error string with our own entropy message.
-		entropyMsg := fmt.Sprintf("password is only %d%% strength", entropyPercent)
-		errMsg := entropyMsg + err.Error()[17:]
+	// 	// Replace the first 17 bytes (`insecure password`)
+	// 	// of the error string with our own entropy message.
+	// 	entropyMsg := fmt.Sprintf("password is only %d%% strength", entropyPercent)
+	// 	errMsg := entropyMsg + err.Error()[17:]
 
-		return errors.New(errMsg)
-	}
+	// 	return errors.New(errMsg)
+	// }
 
 	return nil // password OK
 }
