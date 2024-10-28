@@ -410,9 +410,9 @@ func CreateAccount(form *apimodel.AccountCreateRequest) error {
 	// 	return err
 	// }
 
-	if !form.Agreement {
-		return errors.New("agreement to terms and conditions not given")
-	}
+	// if !form.Agreement {
+	// 	return errors.New("agreement to terms and conditions not given")
+	// }
 
 	locale, err := Language(form.Locale)
 	if err != nil {

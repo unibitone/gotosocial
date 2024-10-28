@@ -20,7 +20,6 @@ package user
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/superseriousbusiness/gotosocial/internal/ap"
 	apimodel "github.com/superseriousbusiness/gotosocial/internal/api/model"
@@ -39,40 +38,42 @@ import (
 //
 // Precondition: the form's fields should have already been
 // validated and normalized by the caller.
+// 创建新账号
 func (p *Processor) Create(
 	ctx context.Context,
 	app *gtsmodel.Application,
 	form *apimodel.AccountCreateRequest,
 ) (*gtsmodel.User, gtserror.WithCode) {
-	const (
-		usersPerDay = 10
-		regBacklog  = 20
-	)
+	// 取消每日注册限制
+	// const (
+	// 	usersPerDay = 10
+	// 	regBacklog  = 20
+	// )
 
 	// Ensure no more than usersPerDay
 	// have registered in the last 24h.
-	newUsersCount, err := p.state.DB.CountApprovedSignupsSince(ctx, time.Now().Add(-24*time.Hour))
-	if err != nil {
-		err := fmt.Errorf("db error counting new users: %w", err)
-		return nil, gtserror.NewErrorInternalError(err)
-	}
+	// newUsersCount, err := p.state.DB.CountApprovedSignupsSince(ctx, time.Now().Add(-24*time.Hour))
+	// if err != nil {
+	// 	err := fmt.Errorf("db error counting new users: %w", err)
+	// 	return nil, gtserror.NewErrorInternalError(err)
+	// }
 
-	if newUsersCount >= usersPerDay {
-		err := fmt.Errorf("this instance has hit its limit of new sign-ups for today; you can try again tomorrow")
-		return nil, gtserror.NewErrorUnprocessableEntity(err, err.Error())
-	}
+	// if newUsersCount >= usersPerDay {
+	// 	err := fmt.Errorf("this instance has hit its limit of new sign-ups for today; you can try again tomorrow")
+	// 	return nil, gtserror.NewErrorUnprocessableEntity(err, err.Error())
+	// }
 
 	// Ensure the new users backlog isn't full.
-	backlogLen, err := p.state.DB.CountUnhandledSignups(ctx)
-	if err != nil {
-		err := fmt.Errorf("db error counting registration backlog length: %w", err)
-		return nil, gtserror.NewErrorInternalError(err)
-	}
+	// backlogLen, err := p.state.DB.CountUnhandledSignups(ctx)
+	// if err != nil {
+	// 	err := fmt.Errorf("db error counting registration backlog length: %w", err)
+	// 	return nil, gtserror.NewErrorInternalError(err)
+	// }
 
-	if backlogLen >= regBacklog {
-		err := fmt.Errorf("this instance's sign-up backlog is currently full; you must wait until pending sign-ups are handled by the admin(s)")
-		return nil, gtserror.NewErrorUnprocessableEntity(err, err.Error())
-	}
+	// if backlogLen >= regBacklog {
+	// 	err := fmt.Errorf("this instance's sign-up backlog is currently full; you must wait until pending sign-ups are handled by the admin(s)")
+	// 	return nil, gtserror.NewErrorUnprocessableEntity(err, err.Error())
+	// }
 
 	emailAvailable, err := p.state.DB.IsEmailAvailable(ctx, form.Email)
 	if err != nil {
