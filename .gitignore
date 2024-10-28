@@ -41,3 +41,4 @@ shell.nix
 # while preserving cached fonts.
 /docs/.cache/plugin/social/*.png
 storage/
+.DS_Store
